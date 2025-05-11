@@ -1,4 +1,3 @@
-
 import { RepoExplorer } from "@/components/RepoExplorer";
 import { RecentDownloads } from "@/components/RecentDownloads";
 import { Navbar } from "@/components/layout/Navbar";
@@ -74,7 +73,12 @@ export default function Index() {
                   </div>
                 </div>
               </div>
-              <RepoExplorer onSearch={(hasResults) => setHasSearched(!!hasResults)} />
+              <div className={cn(
+                "transition-all duration-300",
+                !hasSearched && "bg-card/30 p-6 rounded-xl border border-border/20 shadow-lg"
+              )}>
+                <RepoExplorer onSearch={(hasResults) => setHasSearched(!!hasResults)} />
+              </div>
             </div>
           </div>
         </section>

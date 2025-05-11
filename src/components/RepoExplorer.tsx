@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useGitHubApi, GitHubContent } from '@/hooks/useGitHubApi';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
@@ -357,30 +356,33 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
       {showInitialSearch || !repo.data ? (
         <Card className="border border-border/40 backdrop-blur-sm animate-fade-in hover-scale max-w-2xl mx-auto">
           <CardHeader className="pb-3">
-            <div className="flex flex-col gap-4 sm:flex-row">
-              <div className="relative flex-1">
+            <div className="search-container p-4 animate-fade-in">
+              <div className="flex flex-col md:flex-row gap-2">
                 <Input
+                  type="text"
                   placeholder="Enter GitHub URL (e.g., https://github.com/user/repo)"
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
-                  className="pl-9 bg-card/50 border-border/40"
+                  className="search-input flex-grow"
                 />
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Button 
+                  onClick={handleExplore} 
+                  disabled={!url || repo.loading}
+                  className="search-button"
+                >
+                  {repo.loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Loading
+                    </>
+                  ) : (
+                    <>
+                      <Search className="mr-2 h-4 w-4" />
+                      Explore
+                    </>
+                  )}
+                </Button>
               </div>
-              <Button 
-                onClick={handleExplore} 
-                disabled={!url || repo.loading}
-                className="bg-primary hover:bg-primary/90"
-              >
-                {repo.loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Loading...
-                  </>
-                ) : (
-                  'Explore'
-                )}
-              </Button>
             </div>
           </CardHeader>
           <CardContent>
