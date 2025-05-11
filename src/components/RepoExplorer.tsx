@@ -12,6 +12,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Folder, File, Download, ArrowLeft, Github, Loader2, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 import JSZip from 'jszip';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -26,6 +27,8 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
   const [breadcrumbs, setBreadcrumbs] = useState<{name: string, path: string}[]>([]);
   const [downloads, setDownloads] = useLocalStorage<DownloadRecord[]>('recent-downloads', []);
   const [isDownloading, setIsDownloading] = useState(false);
+  const isMobile = useIsMobile();
+  const [showInitialSearch, setShowInitialSearch] = useState(true);
   
   const {
     repo,
@@ -40,6 +43,9 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
     // Call onSearch callback when repo data changes
     if (onSearch) {
       onSearch(!!repo.data);
+    }
+    if (repo.data) {
+      setShowInitialSearch(false);
     }
   }, [repo.data, onSearch]);
 
@@ -157,6 +163,11 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
         variant: 'destructive'
       });
     }
+  };
+
+  // Return to initial search
+  const backToSearch = () => {
+    setShowInitialSearch(true);
   };
 
   // Download file
@@ -343,192 +354,193 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
 
   return (
     <div className="w-full space-y-4">
-      <Card className="border border-border/40 backdrop-blur-sm animate-fade-in hover-scale">
-        <CardHeader className="pb-3">
-          <div className="flex flex-col gap-4 sm:flex-row">
-            <div className="relative flex-1">
-              <Input
-                placeholder="Enter GitHub URL (e.g., https://github.com/user/repo)"
-                value={url}
-                onChange={(e) => setUrl(e.target.value)}
-                className="pl-9 bg-card/50 border-border/40"
-              />
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      {showInitialSearch || !repo.data ? (
+        <Card className="border border-border/40 backdrop-blur-sm animate-fade-in hover-scale max-w-2xl mx-auto">
+          <CardHeader className="pb-3">
+            <div className="flex flex-col gap-4 sm:flex-row">
+              <div className="relative flex-1">
+                <Input
+                  placeholder="Enter GitHub URL (e.g., https://github.com/user/repo)"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  className="pl-9 bg-card/50 border-border/40"
+                />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              </div>
+              <Button 
+                onClick={handleExplore} 
+                disabled={!url || repo.loading}
+                className="bg-primary hover:bg-primary/90"
+              >
+                {repo.loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  'Explore'
+                )}
+              </Button>
             </div>
-            <Button 
-              onClick={handleExplore} 
-              disabled={!url || repo.loading}
-              className="bg-primary hover:bg-primary/90"
-            >
-              {repo.loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Loading...
-                </>
-              ) : (
-                'Explore'
-              )}
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {repo.error && (
-            <div className="bg-destructive/10 text-destructive p-3 rounded-md mb-4">
-              {repo.error}
+          </CardHeader>
+          <CardContent>
+            {repo.error && (
+              <div className="bg-destructive/10 text-destructive p-3 rounded-md mb-4">
+                {repo.error}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="max-w-3xl mx-auto animate-fade-in space-y-4">
+          <RepositoryCard repo={repo.data} onBack={backToSearch} />
+          
+          {/* Breadcrumbs */}
+          {breadcrumbs.length > 0 && (
+            <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-md border border-border/30 rounded-md pb-1">
+              <ScrollArea className="w-full py-1 px-2">
+                <div className="flex items-center flex-nowrap gap-1 text-sm">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-7 px-2 whitespace-nowrap flex-shrink-0 hover:bg-accent/10 hover:text-accent"
+                    onClick={() => navigateToFolder('')}
+                  >
+                    <Github className="h-4 w-4 mr-1 text-accent" />
+                    <span>Root</span>
+                  </Button>
+                  
+                  {breadcrumbs.map((crumb, index) => (
+                    <div key={crumb.path} className="flex items-center flex-shrink-0">
+                      <span className="mx-1 text-muted-foreground">/</span>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-7 px-2 whitespace-nowrap hover:bg-accent/10 hover:text-accent"
+                        onClick={() => navigateToFolder(crumb.path)}
+                      >
+                        {crumb.name}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </ScrollArea>
             </div>
           )}
           
-          {repo.data && (
-            <div className="space-y-4 animate-fade-in">
-              <RepositoryCard repo={repo.data} />
-              
-              {/* Breadcrumbs */}
-              {breadcrumbs.length > 0 && (
-                <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-md border border-border/30 rounded-md pb-1">
-                  <ScrollArea className="w-full py-1 px-2">
-                    <div className="flex items-center flex-nowrap gap-1 text-sm">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="h-7 px-2 whitespace-nowrap flex-shrink-0 hover:bg-accent/10 hover:text-accent"
-                        onClick={() => navigateToFolder('')}
-                      >
-                        <Github className="h-4 w-4 mr-1 text-accent" />
-                        <span>Root</span>
-                      </Button>
-                      
-                      {breadcrumbs.map((crumb, index) => (
-                        <div key={crumb.path} className="flex items-center flex-shrink-0">
-                          <span className="mx-1 text-muted-foreground">/</span>
+          {/* Content listing */}
+          {contents.loading ? (
+            <div className="flex justify-center p-8 animate-pulse">
+              <Loader2 className="h-8 w-8 animate-spin text-accent" />
+            </div>
+          ) : contents.data ? (
+            <Card className="border border-border/40">
+              <ScrollArea className="w-full max-h-[500px] bg-card/30">
+                {path && (
+                  <div className="border-b border-border/40 p-2 sticky top-0 bg-card/90 backdrop-blur-sm z-10">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={goToParentFolder}
+                      className="h-8 px-2 hover:bg-accent/10 hover:text-accent"
+                    >
+                      <ArrowLeft className="h-4 w-4 mr-1" />
+                      Up to parent directory
+                    </Button>
+                  </div>
+                )}
+                
+                {contents.data.length === 0 ? (
+                  <div className="p-8 text-center text-muted-foreground">
+                    This directory is empty
+                  </div>
+                ) : (
+                  <div className="divide-y divide-border/20">
+                    {contents.data
+                      .sort((a, b) => {
+                        // Directories first, then files
+                        if (a.type === 'dir' && b.type !== 'dir') return -1;
+                        if (a.type !== 'dir' && b.type === 'dir') return 1;
+                        // Alphabetically within each type
+                        return a.name.localeCompare(b.name);
+                      })
+                      .map((item) => (
+                        <div 
+                          key={item.sha} 
+                          className={cn(
+                            "p-2 flex items-center justify-between transition-colors",
+                            "hover:bg-accent/5 animate-slide-in"
+                          )}
+                        >
+                          <div 
+                            className="flex items-center gap-2 overflow-hidden cursor-pointer flex-1"
+                            onClick={() => item.type === 'dir' ? navigateToFolder(item.path) : undefined}
+                          >
+                            {item.type === 'dir' ? (
+                              <Folder className="h-4 w-4 text-accent flex-shrink-0" />
+                            ) : (
+                              <File className="h-4 w-4 text-primary flex-shrink-0" />
+                            )}
+                            <span className="truncate">
+                              {item.name}
+                            </span>
+                          </div>
                           <Button 
                             variant="ghost" 
-                            size="sm" 
-                            className="h-7 px-2 whitespace-nowrap hover:bg-accent/10 hover:text-accent"
-                            onClick={() => navigateToFolder(crumb.path)}
+                            size="icon" 
+                            className="h-8 w-8 flex-shrink-0 hover:bg-accent/10"
+                            onClick={() => item.type === 'dir' 
+                              ? navigateToFolder(item.path)
+                              : downloadFile(item)
+                            }
                           >
-                            {crumb.name}
+                            {item.type === 'dir' ? (
+                              <Folder className="h-4 w-4 text-accent" />
+                            ) : (
+                              <Download className="h-4 w-4 text-primary" />
+                            )}
                           </Button>
                         </div>
                       ))}
-                    </div>
-                  </ScrollArea>
-                </div>
-              )}
-              
-              {/* Content listing */}
-              {contents.loading ? (
-                <div className="flex justify-center p-8 animate-pulse">
-                  <Loader2 className="h-8 w-8 animate-spin text-accent" />
-                </div>
-              ) : contents.data ? (
-                <ScrollArea className="w-full border border-border/40 rounded-md max-h-[500px] bg-card/30">
-                  {path && (
-                    <div className="border-b border-border/40 p-2 sticky top-0 bg-card/90 backdrop-blur-sm z-10">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        onClick={goToParentFolder}
-                        className="h-8 px-2 hover:bg-accent/10 hover:text-accent"
-                      >
-                        <ArrowLeft className="h-4 w-4 mr-1" />
-                        Up to parent directory
-                      </Button>
-                    </div>
-                  )}
-                  
-                  {contents.data.length === 0 ? (
-                    <div className="p-8 text-center text-muted-foreground">
-                      This directory is empty
-                    </div>
-                  ) : (
-                    <div className="divide-y divide-border/20">
-                      {contents.data
-                        .sort((a, b) => {
-                          // Directories first, then files
-                          if (a.type === 'dir' && b.type !== 'dir') return -1;
-                          if (a.type !== 'dir' && b.type === 'dir') return 1;
-                          // Alphabetically within each type
-                          return a.name.localeCompare(b.name);
-                        })
-                        .map((item) => (
-                          <div 
-                            key={item.sha} 
-                            className={cn(
-                              "p-2 flex items-center justify-between transition-colors",
-                              "hover:bg-accent/5 animate-slide-in"
-                            )}
-                          >
-                            <div 
-                              className="flex items-center gap-2 overflow-hidden cursor-pointer flex-1"
-                              onClick={() => item.type === 'dir' ? navigateToFolder(item.path) : undefined}
-                            >
-                              {item.type === 'dir' ? (
-                                <Folder className="h-4 w-4 text-accent flex-shrink-0" />
-                              ) : (
-                                <File className="h-4 w-4 text-primary flex-shrink-0" />
-                              )}
-                              <span className="truncate">
-                                {item.name}
-                              </span>
-                            </div>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-8 w-8 flex-shrink-0 hover:bg-accent/10"
-                              onClick={() => item.type === 'dir' 
-                                ? navigateToFolder(item.path)
-                                : downloadFile(item)
-                              }
-                            >
-                              {item.type === 'dir' ? (
-                                <Folder className="h-4 w-4 text-accent" />
-                              ) : (
-                                <Download className="h-4 w-4 text-primary" />
-                              )}
-                            </Button>
-                          </div>
-                        ))}
-                    </div>
-                  )}
-                </ScrollArea>
-              ) : null}
-            </div>
-          )}
-        </CardContent>
-        {repo.data && (
-          <CardFooter className="flex justify-end gap-2 border-t border-border/20 pt-3">
-            {path ? (
-              <Button 
-                variant="outline"
-                onClick={downloadDirectory}
-                disabled={isDownloading || !contents.data}
-                className="border-accent/30 hover:border-accent hover:bg-accent/10 hover:text-accent"
-              >
-                {isDownloading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <Download className="mr-2 h-4 w-4" />
+                  </div>
                 )}
-                Download this directory
-              </Button>
-            ) : (
-              <Button 
-                variant="outline"
-                onClick={downloadRepository}
-                disabled={isDownloading}
-                className="border-accent/30 hover:border-accent hover:bg-accent/10 hover:text-accent"
-              >
-                {isDownloading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              </ScrollArea>
+
+              <CardFooter className="flex justify-end gap-2 border-t border-border/20 pt-3">
+                {path ? (
+                  <Button 
+                    variant="outline"
+                    onClick={downloadDirectory}
+                    disabled={isDownloading || !contents.data}
+                    className="border-accent/30 hover:border-accent hover:bg-accent/10 hover:text-accent"
+                  >
+                    {isDownloading ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Download className="mr-2 h-4 w-4" />
+                    )}
+                    Download this directory
+                  </Button>
                 ) : (
-                  <Download className="mr-2 h-4 w-4" />
+                  <Button 
+                    variant="outline"
+                    onClick={downloadRepository}
+                    disabled={isDownloading}
+                    className="border-accent/30 hover:border-accent hover:bg-accent/10 hover:text-accent"
+                  >
+                    {isDownloading ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Download className="mr-2 h-4 w-4" />
+                    )}
+                    Download entire repository
+                  </Button>
                 )}
-                Download entire repository
-              </Button>
-            )}
-          </CardFooter>
-        )}
-      </Card>
+              </CardFooter>
+            </Card>
+          ) : null}
+        </div>
+      )}
     </div>
   );
 }

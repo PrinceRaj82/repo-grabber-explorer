@@ -40,11 +40,12 @@ export function ThemeProvider({
         ? 'dark'
         : 'light';
       root.classList.add(systemTheme);
-      return;
+    } else {
+      root.classList.add(theme);
     }
-
-    root.classList.add(theme);
-  }, [theme]);
+    
+    localStorage.setItem(storageKey, theme);
+  }, [theme, storageKey]);
 
   // Listen for system theme changes
   useEffect(() => {
@@ -66,9 +67,9 @@ export function ThemeProvider({
 
   const value = {
     theme,
-    setTheme: (theme: Theme) => {
-      localStorage.setItem(storageKey, theme);
-      setTheme(theme);
+    setTheme: (newTheme: Theme) => {
+      localStorage.setItem(storageKey, newTheme);
+      setTheme(newTheme);
     },
   };
 

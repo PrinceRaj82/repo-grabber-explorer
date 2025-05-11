@@ -9,10 +9,12 @@ import { Link } from "react-router-dom";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/contexts/ThemeContext";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 export default function Index() {
   const [hasSearched, setHasSearched] = useState(false);
   const { theme } = useTheme();
+  const isMobile = useIsMobile();
   
   return (
     <div className="flex flex-col min-h-screen">
@@ -20,25 +22,25 @@ export default function Index() {
       <main className="flex-1">
         <section 
           className={cn(
-            "transition-all duration-300 ease-in-out",
+            "transition-all duration-300 ease-in-out px-4 md:px-0",
             hasSearched 
-              ? "py-6 md:py-8" 
-              : "py-12 md:py-24 lg:py-32 xl:py-36"
+              ? "py-4 md:py-8" 
+              : "py-8 md:py-16 lg:py-24"
           )}
         >
-          <div className="container px-4 md:px-6">
+          <div className="container px-4 md:px-6 max-w-7xl">
             <div 
               className={cn(
                 "grid gap-6 transition-all duration-300",
                 hasSearched 
-                  ? "lg:grid-cols-[1fr_400px] lg:gap-8 xl:grid-cols-[1fr_500px]" 
-                  : "lg:grid-cols-[1fr_400px] lg:gap-12 xl:grid-cols-[1fr_600px]"
+                  ? "grid-cols-1 max-w-3xl mx-auto" 
+                  : "lg:grid-cols-[1fr_500px] lg:gap-12"
               )}
             >
               <div 
                 className={cn(
                   "flex flex-col justify-center space-y-4 transition-all duration-300", 
-                  hasSearched && "lg:hidden"
+                  hasSearched && "hidden"
                 )}
               >
                 <div className="space-y-2">
@@ -61,7 +63,7 @@ export default function Index() {
                     </Link>
                   </Button>
                 </div>
-                <div className="flex items-center gap-4 text-sm">
+                <div className="flex flex-wrap md:flex-row items-center gap-4 text-sm">
                   <div className="flex items-center gap-1">
                     <span className="inline-block w-4 h-4 rounded-full bg-accent" />
                     <span className="text-muted-foreground">No authentication required</span>
@@ -79,11 +81,11 @@ export default function Index() {
 
         <section 
           className={cn(
-            "transition-all duration-300 ease-in-out",
+            "transition-all duration-300 ease-in-out px-4 md:px-0",
             hasSearched ? "py-4 md:py-6 bg-card/50" : "py-8 md:py-12 lg:py-16 bg-card/50"
           )}
         >
-          <div className="container px-4 md:px-6">
+          <div className="container px-4 md:px-6 max-w-7xl">
             <div className="space-y-6">
               <div className="space-y-2 text-center">
                 <h2 className="text-2xl md:text-3xl font-bold tracking-tighter">
@@ -102,12 +104,12 @@ export default function Index() {
 
         <section 
           className={cn(
-            "transition-all duration-300 bg-background",
-            hasSearched ? "hidden" : "py-12 md:py-24 lg:py-32"
+            "transition-all duration-300 bg-background px-4 md:px-0",
+            hasSearched ? "hidden" : "py-8 md:py-16 lg:py-24"
           )}
         >
-          <div className="container px-4 md:px-6">
-            <div className="mx-auto grid max-w-5xl items-center gap-6 py-12 lg:grid-cols-2 lg:gap-12">
+          <div className="container px-4 md:px-6 max-w-7xl">
+            <div className="mx-auto grid max-w-5xl items-center gap-6 py-6 md:py-12 lg:grid-cols-2 lg:gap-12">
               <div className="space-y-4">
                 <div className="inline-block rounded-lg bg-accent/10 px-3 py-1 text-sm text-accent font-medium">
                   Simple & Powerful

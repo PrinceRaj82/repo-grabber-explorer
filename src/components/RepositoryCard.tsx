@@ -3,7 +3,8 @@ import { formatNumber, formatDate } from '@/utils/gitHubUtils';
 import { GitHubRepo } from '@/hooks/useGitHubApi';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Star, GitFork, Calendar, Users, Code } from 'lucide-react';
+import { Star, GitFork, Calendar, Users, Code, ArrowLeft } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 // Extend the GitHubRepo interface to include optional properties mentioned in errors
 interface EnhancedGitHubRepo extends GitHubRepo {
@@ -14,12 +15,26 @@ interface EnhancedGitHubRepo extends GitHubRepo {
 
 interface RepositoryCardProps {
   repo: EnhancedGitHubRepo;
+  onBack?: () => void;
 }
 
-export function RepositoryCard({ repo }: RepositoryCardProps) {
+export function RepositoryCard({ repo, onBack }: RepositoryCardProps) {
   return (
     <Card className="w-full border border-border/40 bg-card animate-fade-in">
-      <CardHeader className="pb-2">
+      {onBack && (
+        <div className="pt-4 px-6">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={onBack}
+            className="gap-1 text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to search
+          </Button>
+        </div>
+      )}
+      <CardHeader className={onBack ? "pb-2 pt-2" : "pb-2"}>
         <div className="flex items-center gap-3">
           <img 
             src={repo.owner.avatar_url} 
@@ -61,7 +76,7 @@ export function RepositoryCard({ repo }: RepositoryCardProps) {
           ))}
         </div>
       </CardContent>
-      <CardFooter className="pt-2">
+      <CardFooter className="pt-2 flex-wrap">
         <div className="flex flex-wrap items-center gap-4 text-sm w-full">
           <div className="flex items-center gap-1" title={`${repo.stargazers_count} stars`}>
             <Star className="h-4 w-4 text-accent" />
