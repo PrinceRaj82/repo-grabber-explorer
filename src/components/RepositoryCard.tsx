@@ -5,8 +5,15 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from '@/components/ui/badge';
 import { Star, GitFork, Calendar, Users, Code } from 'lucide-react';
 
+// Extend the GitHubRepo interface to include optional properties mentioned in errors
+interface EnhancedGitHubRepo extends GitHubRepo {
+  language?: string;
+  topics?: string[];
+  watchers_count?: number;
+}
+
 interface RepositoryCardProps {
-  repo: GitHubRepo;
+  repo: EnhancedGitHubRepo;
 }
 
 export function RepositoryCard({ repo }: RepositoryCardProps) {
@@ -64,7 +71,7 @@ export function RepositoryCard({ repo }: RepositoryCardProps) {
             <GitFork className="h-4 w-4 text-primary" />
             <span>{formatNumber(repo.forks_count)}</span>
           </div>
-          <div className="flex items-center gap-1" title={`${repo.watchers_count} watchers`}>
+          <div className="flex items-center gap-1" title={`${repo.watchers_count || 0} watchers`}>
             <Users className="h-4 w-4 text-primary" />
             <span>{formatNumber(repo.watchers_count || 0)}</span>
           </div>
