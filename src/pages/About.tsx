@@ -3,6 +3,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Github, Download, FileIcon, FolderIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 export default function About() {
   return (
@@ -38,6 +40,21 @@ export default function About() {
                 that works across all devices. Just paste a GitHub URL, navigate through the
                 repository structure, and download what you need with a single click.
               </p>
+              
+              <div className="flex flex-wrap gap-3 mt-4">
+                <Button asChild>
+                  <Link to="/" className="gap-2">
+                    <Download className="h-4 w-4" />
+                    Try It Now
+                  </Link>
+                </Button>
+                <Button variant="outline" asChild>
+                  <Link to="/guide" className="gap-2">
+                    <FileIcon className="h-4 w-4" />
+                    View Guide
+                  </Link>
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
@@ -110,6 +127,15 @@ export default function About() {
                 making it easy to access your frequently used repositories without having to
                 search for them again.
               </p>
+              
+              <div className="flex justify-center mt-4">
+                <Button asChild variant="outline">
+                  <Link to="/guide" className="gap-2">
+                    <FileIcon className="h-4 w-4" />
+                    Read the Full Guide
+                  </Link>
+                </Button>
+              </div>
             </CardContent>
           </Card>
 
@@ -166,6 +192,15 @@ export default function About() {
                     </p>
                   </div>
                 </div>
+              </div>
+              
+              <div className="flex justify-center mt-6">
+                <Button asChild>
+                  <Link to="/" className="gap-2">
+                    <Download className="h-4 w-4" />
+                    Start Using RepoGrabber Now
+                  </Link>
+                </Button>
               </div>
             </CardContent>
           </Card>

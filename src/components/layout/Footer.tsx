@@ -1,9 +1,10 @@
 
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Github, ExternalLink } from "lucide-react";
 
 export function Footer() {
   const year = new Date().getFullYear();
+  const location = useLocation();
   
   return (
     <footer className="border-t border-border/30 py-6 bg-card/30 backdrop-blur-sm">
@@ -28,19 +29,25 @@ export function Footer() {
         <nav className="flex flex-wrap items-center justify-center gap-4 text-sm">
           <Link
             to="/"
-            className="text-muted-foreground hover:text-accent transition-colors"
+            className={`transition-colors hover:text-accent ${
+              location.pathname === '/' ? 'text-accent' : 'text-muted-foreground'
+            }`}
           >
             Home
           </Link>
           <Link
             to="/about"
-            className="text-muted-foreground hover:text-accent transition-colors"
+            className={`transition-colors hover:text-accent ${
+              location.pathname === '/about' ? 'text-accent' : 'text-muted-foreground'
+            }`}
           >
             About
           </Link>
           <Link
             to="/guide"
-            className="text-muted-foreground hover:text-accent transition-colors"
+            className={`transition-colors hover:text-accent ${
+              location.pathname === '/guide' ? 'text-accent' : 'text-muted-foreground'
+            }`}
           >
             Guide
           </Link>

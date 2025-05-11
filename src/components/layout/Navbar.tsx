@@ -1,5 +1,5 @@
 
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { ThemeToggle } from "./ThemeToggle";
 import { Github, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,8 @@ interface NavbarProps {
 }
 
 export function Navbar({ onSearchStateChange }: NavbarProps) {
+  const location = useLocation();
+  
   return (
     <header className="border-b border-border/30 sticky top-0 z-40 w-full bg-background/80 backdrop-blur-md">
       <div className="container flex h-16 items-center justify-between py-4">
@@ -25,19 +27,25 @@ export function Navbar({ onSearchStateChange }: NavbarProps) {
         <nav className="hidden md:flex items-center gap-6 text-sm">
           <Link
             to="/"
-            className="transition-colors hover:text-accent text-foreground/80"
+            className={`transition-colors hover:text-accent ${
+              location.pathname === '/' ? 'text-accent font-medium' : 'text-foreground/80'
+            }`}
           >
             Home
           </Link>
           <Link
             to="/about"
-            className="transition-colors hover:text-accent text-foreground/80"
+            className={`transition-colors hover:text-accent ${
+              location.pathname === '/about' ? 'text-accent font-medium' : 'text-foreground/80'
+            }`}
           >
             About
           </Link>
           <Link
             to="/guide"
-            className="transition-colors hover:text-accent text-foreground/80"
+            className={`transition-colors hover:text-accent ${
+              location.pathname === '/guide' ? 'text-accent font-medium' : 'text-foreground/80'
+            }`}
           >
             Guide
           </Link>
