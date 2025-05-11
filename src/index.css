@@ -6,7 +6,7 @@
 @layer base {
   :root {
     /* Light mode */
-    --background: 0 0% 100%;
+    --background: 210 40% 98%; /* Soft cool white */
     --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
@@ -37,7 +37,7 @@
 
     --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 98%;
+    --sidebar-background: 210 40% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
     --sidebar-primary: 240 5.9% 10%;
     --sidebar-primary-foreground: 0 0% 98%;
@@ -139,5 +139,19 @@
   
   .hover-scale:hover {
     transform: scale(1.02);
+  }
+
+  /* Adding new animation utilities */
+  .hover-lift {
+    @apply transition-all duration-200 ease-in-out;
+  }
+  
+  .hover-lift:hover {
+    transform: translateY(-3px);
+    @apply shadow-md;
+  }
+  
+  .gradient-text {
+    @apply bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent;
   }
 }

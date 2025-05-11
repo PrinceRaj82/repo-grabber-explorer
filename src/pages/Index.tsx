@@ -4,7 +4,7 @@ import { RecentDownloads } from "@/components/RecentDownloads";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
-import { Download, Github, FileCode } from "lucide-react";
+import { Download, Github, FileCode, FolderIcon, FileIcon, History } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -44,7 +44,7 @@ export default function Index() {
                 )}
               >
                 <div className="space-y-2">
-                  <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                  <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none gradient-text">
                     Download GitHub Code with Ease
                   </h1>
                   <p className="max-w-[600px] text-muted-foreground md:text-xl">
@@ -52,11 +52,11 @@ export default function Index() {
                   </p>
                 </div>
                 <div className="flex flex-col gap-2 min-[400px]:flex-row">
-                  <Button size="lg" className="gap-1 bg-primary hover:bg-primary/90">
+                  <Button size="lg" className="gap-1 bg-primary hover:bg-primary/90 hover-lift">
                     <Download className="h-4 w-4" />
                     Get Started
                   </Button>
-                  <Button size="lg" variant="outline" asChild>
+                  <Button size="lg" variant="outline" asChild className="hover-lift">
                     <Link to="/guide" className="gap-1">
                       <FileCode className="h-4 w-4" />
                       Learn How It Works
@@ -123,7 +123,7 @@ export default function Index() {
                 </p>
               </div>
               <div className="grid gap-6 md:grid-cols-2">
-                <div className="flex flex-col items-center gap-2 rounded-lg border border-border/40 bg-card p-4 text-center hover-scale">
+                <div className="flex flex-col items-center gap-2 rounded-lg border border-border/40 bg-card p-4 text-center hover-scale shadow-sm">
                   <div className="rounded-full bg-accent/10 p-2">
                     <Github className="h-6 w-6 text-accent" />
                   </div>
@@ -132,7 +132,7 @@ export default function Index() {
                     Download complete repositories with a single click
                   </p>
                 </div>
-                <div className="flex flex-col items-center gap-2 rounded-lg border border-border/40 bg-card p-4 text-center hover-scale">
+                <div className="flex flex-col items-center gap-2 rounded-lg border border-border/40 bg-card p-4 text-center hover-scale shadow-sm">
                   <div className="rounded-full bg-accent/10 p-2">
                     <FolderIcon className="h-6 w-6 text-accent" />
                   </div>
@@ -141,7 +141,7 @@ export default function Index() {
                     Download specific folders as ZIP archives
                   </p>
                 </div>
-                <div className="flex flex-col items-center gap-2 rounded-lg border border-border/40 bg-card p-4 text-center hover-scale">
+                <div className="flex flex-col items-center gap-2 rounded-lg border border-border/40 bg-card p-4 text-center hover-scale shadow-sm">
                   <div className="rounded-full bg-accent/10 p-2">
                     <FileIcon className="h-6 w-6 text-accent" />
                   </div>
@@ -150,7 +150,7 @@ export default function Index() {
                     Download individual files directly to your device
                   </p>
                 </div>
-                <div className="flex flex-col items-center gap-2 rounded-lg border border-border/40 bg-card p-4 text-center hover-scale">
+                <div className="flex flex-col items-center gap-2 rounded-lg border border-border/40 bg-card p-4 text-center hover-scale shadow-sm">
                   <div className="rounded-full bg-accent/10 p-2">
                     <History className="h-6 w-6 text-accent" />
                   </div>
@@ -168,6 +168,3 @@ export default function Index() {
     </div>
   );
 }
-
-// Import missing icons
-import { FolderIcon, FileIcon, History } from "lucide-react";
