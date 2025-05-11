@@ -1,22 +1,49 @@
 
 import { useTheme } from "@/contexts/ThemeContext";
 import { Button } from "@/components/ui/button";
-import { Moon, Sun } from "lucide-react";
+import { Moon, Sun, MonitorSmartphone } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme();
 
   return (
-    <Button
-      variant="ghost"
-      size="icon"
-      onClick={() => setTheme(theme === "light" ? "dark" : "light")}
-      className="rounded-full"
-      aria-label="Toggle theme"
-    >
-      <Sun className="h-5 w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-      <Moon className="absolute h-5 w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-      <span className="sr-only">Toggle theme</span>
-    </Button>
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="rounded-full h-9 w-9 bg-card/50 backdrop-blur-sm"
+          aria-label="Toggle theme"
+        >
+          {theme === "light" && <Sun className="h-4 w-4 text-accent" />}
+          {theme === "dark" && <Moon className="h-4 w-4 text-accent" />}
+          {theme === "system" && <MonitorSmartphone className="h-4 w-4 text-accent" />}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="border-border/40 bg-card">
+        <DropdownMenuItem 
+          onClick={() => setTheme("light")}
+          className={theme === "light" ? "bg-accent/10 text-accent" : ""}
+        >
+          <Sun className="h-4 w-4 mr-2" />
+          <span>Light</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem 
+          onClick={() => setTheme("dark")}
+          className={theme === "dark" ? "bg-accent/10 text-accent" : ""}
+        >
+          <Moon className="h-4 w-4 mr-2" />
+          <span>Dark</span>
+        </DropdownMenuItem>
+        <DropdownMenuItem 
+          onClick={() => setTheme("system")}
+          className={theme === "system" ? "bg-accent/10 text-accent" : ""}
+        >
+          <MonitorSmartphone className="h-4 w-4 mr-2" />
+          <span>System</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

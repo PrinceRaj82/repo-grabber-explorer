@@ -1,4 +1,5 @@
-import { useState } from 'react';
+
+import { useState, useEffect } from 'react';
 import { useGitHubApi, GitHubContent } from '@/hooks/useGitHubApi';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { parseGitHubUrl, getFileExtension, isBinaryFile } from '@/utils/gitHubUtils';
@@ -8,12 +9,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Folder, File, Download, ArrowLeft, Github, Loader2 } from 'lucide-react';
+import { Folder, File, Download, ArrowLeft, Github, Loader2, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { cn } from '@/lib/utils';
 import JSZip from 'jszip';
 import { v4 as uuidv4 } from 'uuid';
 
-export function RepoExplorer() {
+interface RepoExplorerProps {
+  onSearch?: (hasResults: boolean) => void;
+}
+
+export function RepoExplorer({ onSearch }: RepoExplorerProps) {
   const { toast } = useToast();
   const [url, setUrl] = useState('');
   const [path, setPath] = useState('');
@@ -29,6 +35,13 @@ export function RepoExplorer() {
     fetchContents,
     fetchFile
   } = useGitHubApi();
+
+  useEffect(() => {
+    // Call onSearch callback when repo data changes
+    if (onSearch) {
+      onSearch(!!repo.data);
+    }
+  }, [repo.data, onSearch]);
 
   // Handle URL submission
   const handleExplore = async () => {
@@ -330,16 +343,23 @@ export function RepoExplorer() {
 
   return (
     <div className="w-full space-y-4">
-      <Card>
-        <CardHeader>
+      <Card className="border border-border/40 backdrop-blur-sm animate-fade-in hover-scale">
+        <CardHeader className="pb-3">
           <div className="flex flex-col gap-4 sm:flex-row">
-            <Input
-              placeholder="Enter GitHub URL (e.g., https://github.com/user/repo)"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              className="flex-1"
-            />
-            <Button onClick={handleExplore} disabled={!url || repo.loading}>
+            <div className="relative flex-1">
+              <Input
+                placeholder="Enter GitHub URL (e.g., https://github.com/user/repo)"
+                value={url}
+                onChange={(e) => setUrl(e.target.value)}
+                className="pl-9 bg-card/50 border-border/40"
+              />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            </div>
+            <Button 
+              onClick={handleExplore} 
+              disabled={!url || repo.loading}
+              className="bg-primary hover:bg-primary/90"
+            >
               {repo.loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -359,54 +379,56 @@ export function RepoExplorer() {
           )}
           
           {repo.data && (
-            <div className="space-y-4">
+            <div className="space-y-4 animate-fade-in">
               <RepositoryCard repo={repo.data} />
               
               {/* Breadcrumbs */}
               {breadcrumbs.length > 0 && (
-                <ScrollArea className="w-full pb-2">
-                  <div className="flex items-center flex-nowrap gap-1 text-sm">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-7 px-2 whitespace-nowrap flex-shrink-0"
-                      onClick={() => navigateToFolder('')}
-                    >
-                      <Github className="h-4 w-4 mr-1" />
-                      Root
-                    </Button>
-                    
-                    {breadcrumbs.map((crumb, index) => (
-                      <div key={crumb.path} className="flex items-center flex-shrink-0">
-                        <span className="mx-1 text-muted-foreground">/</span>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-7 px-2 whitespace-nowrap"
-                          onClick={() => navigateToFolder(crumb.path)}
-                        >
-                          {crumb.name}
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
+                <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-md border border-border/30 rounded-md pb-1">
+                  <ScrollArea className="w-full py-1 px-2">
+                    <div className="flex items-center flex-nowrap gap-1 text-sm">
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="h-7 px-2 whitespace-nowrap flex-shrink-0 hover:bg-accent/10 hover:text-accent"
+                        onClick={() => navigateToFolder('')}
+                      >
+                        <Github className="h-4 w-4 mr-1 text-accent" />
+                        <span>Root</span>
+                      </Button>
+                      
+                      {breadcrumbs.map((crumb, index) => (
+                        <div key={crumb.path} className="flex items-center flex-shrink-0">
+                          <span className="mx-1 text-muted-foreground">/</span>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-7 px-2 whitespace-nowrap hover:bg-accent/10 hover:text-accent"
+                            onClick={() => navigateToFolder(crumb.path)}
+                          >
+                            {crumb.name}
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </div>
               )}
               
               {/* Content listing */}
               {contents.loading ? (
-                <div className="flex justify-center p-8">
-                  <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                <div className="flex justify-center p-8 animate-pulse">
+                  <Loader2 className="h-8 w-8 animate-spin text-accent" />
                 </div>
               ) : contents.data ? (
-                <ScrollArea className="w-full border rounded-md max-h-[500px]">
+                <ScrollArea className="w-full border border-border/40 rounded-md max-h-[500px] bg-card/30">
                   {path && (
-                    <div className="border-b p-2 sticky top-0 bg-background z-10">
+                    <div className="border-b border-border/40 p-2 sticky top-0 bg-card/90 backdrop-blur-sm z-10">
                       <Button 
                         variant="ghost" 
                         size="sm" 
                         onClick={goToParentFolder}
-                        className="h-8 px-2"
+                        className="h-8 px-2 hover:bg-accent/10 hover:text-accent"
                       >
                         <ArrowLeft className="h-4 w-4 mr-1" />
                         Up to parent directory
@@ -419,7 +441,7 @@ export function RepoExplorer() {
                       This directory is empty
                     </div>
                   ) : (
-                    <div className="divide-y">
+                    <div className="divide-y divide-border/20">
                       {contents.data
                         .sort((a, b) => {
                           // Directories first, then files
@@ -431,16 +453,19 @@ export function RepoExplorer() {
                         .map((item) => (
                           <div 
                             key={item.sha} 
-                            className="p-2 flex items-center justify-between hover:bg-muted/50"
+                            className={cn(
+                              "p-2 flex items-center justify-between transition-colors",
+                              "hover:bg-accent/5 animate-slide-in"
+                            )}
                           >
                             <div 
-                              className="flex items-center gap-2 overflow-hidden cursor-pointer"
+                              className="flex items-center gap-2 overflow-hidden cursor-pointer flex-1"
                               onClick={() => item.type === 'dir' ? navigateToFolder(item.path) : undefined}
                             >
                               {item.type === 'dir' ? (
-                                <Folder className="h-4 w-4 text-blue-500 flex-shrink-0" />
+                                <Folder className="h-4 w-4 text-accent flex-shrink-0" />
                               ) : (
-                                <File className="h-4 w-4 text-gray-500 flex-shrink-0" />
+                                <File className="h-4 w-4 text-primary flex-shrink-0" />
                               )}
                               <span className="truncate">
                                 {item.name}
@@ -449,16 +474,16 @@ export function RepoExplorer() {
                             <Button 
                               variant="ghost" 
                               size="icon" 
-                              className="h-8 w-8 flex-shrink-0"
+                              className="h-8 w-8 flex-shrink-0 hover:bg-accent/10"
                               onClick={() => item.type === 'dir' 
                                 ? navigateToFolder(item.path)
                                 : downloadFile(item)
                               }
                             >
                               {item.type === 'dir' ? (
-                                <Folder className="h-4 w-4" />
+                                <Folder className="h-4 w-4 text-accent" />
                               ) : (
-                                <Download className="h-4 w-4" />
+                                <Download className="h-4 w-4 text-primary" />
                               )}
                             </Button>
                           </div>
@@ -471,12 +496,13 @@ export function RepoExplorer() {
           )}
         </CardContent>
         {repo.data && (
-          <CardFooter className="flex justify-end gap-2">
+          <CardFooter className="flex justify-end gap-2 border-t border-border/20 pt-3">
             {path ? (
               <Button 
                 variant="outline"
                 onClick={downloadDirectory}
                 disabled={isDownloading || !contents.data}
+                className="border-accent/30 hover:border-accent hover:bg-accent/10 hover:text-accent"
               >
                 {isDownloading ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -490,6 +516,7 @@ export function RepoExplorer() {
                 variant="outline"
                 onClick={downloadRepository}
                 disabled={isDownloading}
+                className="border-accent/30 hover:border-accent hover:bg-accent/10 hover:text-accent"
               >
                 {isDownloading ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
