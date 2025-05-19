@@ -86,21 +86,12 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
           await fetchContents(url, parsedUrl.path);
         }
       } else if (parsedUrl.type === 'file') {
-        const repoData = await fetchRepo(`https://github.com/${parsedUrl.owner}/${parsedUrl.repo}`);
-        if (repoData && parsedUrl.path) {
-          await fetchFile(url);
-          // Create breadcrumbs for file
-          const pathParts = parsedUrl.path.split('/');
-          const fileName = pathParts.pop() || '';
-          const directoryPath = pathParts.join('/');
-          
-          const crumbs = pathParts.map((part, index) => ({
-            name: part,
-            path: pathParts.slice(0, index + 1).join('/')
-          }));
-          
-          setPath(directoryPath);
-          setBreadcrumbs(crumbs);
+        // New direct file download functionality
+        const fileData = await fetchFile(url);
+        if (fileData) {
+          // Successfully fetched file data, now download it directly
+          await downloadFileDirect(fileData, parsedUrl);
+          return; // Exit early since we've handled the file download
         }
       }
     } catch (error) {
@@ -109,6 +100,80 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
         description: error instanceof Error ? error.message : 'An unknown error occurred',
         variant: 'destructive'
       });
+    }
+  };
+
+  // Direct file download functionality
+  const downloadFileDirect = async (fileContent: GitHubContent, parsedUrl: GitHubUrlInfo) => {
+    try {
+      if (!fileContent.download_url) {
+        toast({
+          title: 'Download Error',
+          description: 'No download URL available for this file',
+          variant: 'destructive'
+        });
+        return;
+      }
+      
+      setIsDownloading(true);
+      const response = await fetch(fileContent.download_url);
+      if (!response.ok) {
+        throw new Error('Failed to download file');
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileContent.name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      
+      // Add to recent downloads
+      const newDownload: DownloadRecord = {
+        id: uuidv4(),
+        url: fileContent.html_url,
+        timestamp: Date.now(),
+        type: 'file',
+        name: fileContent.name
+      };
+      setDownloads([newDownload, ...downloads.slice(0, 9)]);
+      
+      toast({
+        title: 'File Downloaded',
+        description: `Successfully downloaded ${fileContent.name}`
+      });
+
+      // Show repo data for context
+      if (parsedUrl.owner && parsedUrl.repo) {
+        const repoData = await fetchRepo(`https://github.com/${parsedUrl.owner}/${parsedUrl.repo}`);
+        if (repoData) {
+          // Create breadcrumbs for file
+          if (parsedUrl.path) {
+            const pathParts = parsedUrl.path.split('/');
+            const fileName = pathParts.pop() || '';
+            const directoryPath = pathParts.join('/');
+            
+            const crumbs = pathParts.map((part, index) => ({
+              name: part,
+              path: pathParts.slice(0, index + 1).join('/')
+            }));
+            
+            setPath(directoryPath);
+            setBreadcrumbs(crumbs);
+          }
+        }
+      }
+    } catch (error) {
+      toast({
+        title: 'Download Error',
+        description: error instanceof Error ? error.message : 'Failed to download file',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -454,24 +519,25 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
       {showInitialSearch || !repo.data ? (
         <Card className="border border-border/40 backdrop-blur-sm animate-fade-in hover-scale max-w-2xl mx-auto">
           <CardHeader className="pb-3">
-            <div className="search-container p-4 animate-fade-in">
-              <div className="flex flex-col md:flex-row gap-2">
+            <div className="search-container p-0 sm:p-4 animate-fade-in">
+              <div className="flex flex-col gap-2">
                 <Input
                   type="text"
                   placeholder="Enter GitHub URL (e.g., https://github.com/user/repo)"
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
-                  className="search-input flex-grow"
+                  className="search-input flex-grow text-base"
+                  style={{ fontSize: isMobile ? '16px' : '14px' }} // Prevent zoom on mobile
                 />
                 <Button 
                   onClick={handleExplore} 
                   disabled={!url || repo.loading}
-                  className="search-button"
+                  className="search-button w-full sm:w-auto py-6 sm:py-4"
                 >
-                  {repo.loading ? (
+                  {isDownloading || repo.loading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Loading
+                      {isDownloading ? 'Downloading...' : 'Loading...'}
                     </>
                   ) : (
                     <>

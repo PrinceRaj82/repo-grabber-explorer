@@ -36,11 +36,20 @@ export function parseGitHubUrl(url: string): GitHubUrlInfo {
     }
 
     // Check if it's a blob URL (file) or tree URL (directory)
-    if (parts.length >= 4 && (parts[2] === 'blob' || parts[2] === 'tree')) {
-      // parts[3] is the branch, we'll skip it and get the rest as path
-      const path = parts.slice(4).join('/');
-      const type = parts[2] === 'blob' ? 'file' : 'directory';
-      return { owner, repo, path, type };
+    if (parts.length >= 4) {
+      // Check for blob (file) or tree (directory)
+      if (parts[2] === 'blob' || parts[2] === 'tree') {
+        // parts[3] is the branch, we'll skip it and get the rest as path
+        const path = parts.slice(4).join('/');
+        const type = parts[2] === 'blob' ? 'file' : 'directory';
+        return { owner, repo, path, type };
+      }
+      
+      // Special case for raw URLs
+      if (parts[2] === 'raw') {
+        const path = parts.slice(4).join('/');
+        return { owner, repo, path, type: 'file' };
+      }
     }
 
     // If it doesn't match known patterns, treat as invalid
