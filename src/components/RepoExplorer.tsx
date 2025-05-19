@@ -26,6 +26,7 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
   const [breadcrumbs, setBreadcrumbs] = useState<{name: string, path: string}[]>([]);
   const [downloads, setDownloads] = useLocalStorage<DownloadRecord[]>('recent-downloads', []);
   const [isDownloading, setIsDownloading] = useState(false);
+  const [downloadingFolders, setDownloadingFolders] = useState<{[key: string]: boolean}>({});
   const isMobile = useIsMobile();
   const [showInitialSearch, setShowInitialSearch] = useState(true);
   
@@ -215,6 +216,103 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
         title: 'Download Error',
         description: error instanceof Error ? error.message : 'Failed to download file',
         variant: 'destructive'
+      });
+    }
+  };
+
+  // Download specific folder
+  const downloadSpecificFolder = async (folderPath: string, folderName: string) => {
+    if (!repo.data) return;
+    
+    try {
+      // Mark this folder as currently downloading
+      setDownloadingFolders(prev => ({ ...prev, [folderPath]: true }));
+      
+      const zip = new JSZip();
+      
+      // Function to recursively fetch and add files to zip
+      const addToZip = async (
+        contentPath: string, 
+        zipFolder: JSZip = zip
+      ) => {
+        const contentResponse = await fetch(
+          `https://api.github.com/repos/${repo.data.owner.login}/${repo.data.name}/contents/${contentPath}`
+        );
+        
+        if (!contentResponse.ok) {
+          throw new Error('Failed to fetch folder contents');
+        }
+        
+        const contentItems = await contentResponse.json() as GitHubContent[];
+        
+        for (const item of contentItems) {
+          if (item.type === 'file') {
+            if (!item.download_url) continue;
+            
+            const response = await fetch(item.download_url);
+            if (!response.ok) continue;
+            
+            let content;
+            const extension = getFileExtension(item.name);
+            
+            if (isBinaryFile(extension)) {
+              content = await response.blob();
+            } else {
+              content = await response.text();
+            }
+            
+            zipFolder.file(item.name, content);
+          } else if (item.type === 'dir') {
+            const subFolder = zipFolder.folder(item.name);
+            if (!subFolder) continue;
+            
+            const subPath = contentPath ? `${contentPath}/${item.name}` : item.name;
+            await addToZip(subPath, subFolder);
+          }
+        }
+      };
+      
+      await addToZip(folderPath);
+      
+      // Generate zip file
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${folderName}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
+      
+      // Add to recent downloads
+      const downloadUrl = `https://github.com/${repo.data.owner.login}/${repo.data.name}/tree/main/${folderPath}`;
+      
+      const newDownload: DownloadRecord = {
+        id: uuidv4(),
+        url: downloadUrl,
+        timestamp: Date.now(),
+        type: 'directory',
+        name: folderName
+      };
+      setDownloads([newDownload, ...downloads.slice(0, 9)]);
+      
+      toast({
+        title: 'Download Complete',
+        description: `Successfully downloaded ${folderName}`
+      });
+    } catch (error) {
+      toast({
+        title: 'Download Error',
+        description: error instanceof Error ? error.message : 'Failed to download folder',
+        variant: 'destructive'
+      });
+    } finally {
+      // Mark this folder as no longer downloading
+      setDownloadingFolders(prev => {
+        const updated = { ...prev };
+        delete updated[folderPath];
+        return updated;
       });
     }
   };
@@ -487,21 +585,38 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
                               {item.name}
                             </span>
                           </div>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-8 w-8 flex-shrink-0 hover:bg-accent/10"
-                            onClick={() => item.type === 'dir' 
-                              ? navigateToFolder(item.path)
-                              : downloadFile(item)
-                            }
-                          >
-                            {item.type === 'dir' ? (
-                              <Folder className="h-4 w-4 text-accent" />
-                            ) : (
-                              <Download className="h-4 w-4 text-primary" />
+                          <div className="flex flex-shrink-0 gap-1">
+                            {item.type === 'dir' && (
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 hover:bg-accent/10"
+                                onClick={() => downloadSpecificFolder(item.path, item.name)}
+                                disabled={downloadingFolders[item.path]}
+                              >
+                                {downloadingFolders[item.path] ? (
+                                  <Loader2 className="h-4 w-4 text-accent animate-spin" />
+                                ) : (
+                                  <Download className="h-4 w-4 text-accent" />
+                                )}
+                              </Button>
                             )}
-                          </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-8 w-8 hover:bg-accent/10"
+                              onClick={() => item.type === 'dir' 
+                                ? navigateToFolder(item.path)
+                                : downloadFile(item)
+                              }
+                            >
+                              {item.type === 'dir' ? (
+                                <Folder className="h-4 w-4 text-accent" />
+                              ) : (
+                                <Download className="h-4 w-4 text-primary" />
+                              )}
+                            </Button>
+                          </div>
                         </div>
                       ))}
                   </div>
