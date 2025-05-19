@@ -1,7 +1,7 @@
 
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
-import Guide from "./Guide";
+import Guide from "./GuideContent";
 
 export default function GuidePage() {
   return (
