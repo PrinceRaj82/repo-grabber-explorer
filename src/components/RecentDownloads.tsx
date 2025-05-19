@@ -52,11 +52,11 @@ export function RecentDownloads() {
       if (item.type === 'file') {
         // For files, fetch the file content and download it
         const fileData = await fetchFile(item.url);
-        if (!fileData.data || !fileData.data.download_url) {
+        if (!fileData || !fileData.download_url) {
           throw new Error('Failed to fetch file data');
         }
         
-        const response = await fetch(fileData.data.download_url);
+        const response = await fetch(fileData.download_url);
         if (!response.ok) {
           throw new Error('Failed to download file');
         }
@@ -142,11 +142,11 @@ export function RecentDownloads() {
       else if (item.type === 'repository') {
         // For repositories, use the GitHub download link
         const repoData = await fetchRepo(item.url);
-        if (!repoData.data) {
+        if (!repoData) {
           throw new Error('Failed to fetch repository data');
         }
         
-        const repoUrl = `https://github.com/${owner}/${repo}/archive/refs/heads/${repoData.data.default_branch}.zip`;
+        const repoUrl = `https://github.com/${owner}/${repo}/archive/refs/heads/${repoData.default_branch}.zip`;
         
         // Create an invisible link and click it
         const a = document.createElement('a');
