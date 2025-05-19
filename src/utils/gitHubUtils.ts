@@ -24,7 +24,11 @@ export function parseGitHubUrl(url: string): GitHubUrlInfo {
     }
 
     const owner = parts[0];
-    const repo = parts[1];
+    // Handle repo names that end with .git
+    let repo = parts[1];
+    if (repo.endsWith('.git')) {
+      repo = repo.substring(0, repo.length - 4); // Remove .git suffix
+    }
     
     // If there's no path, it's a repository URL
     if (parts.length === 2) {
