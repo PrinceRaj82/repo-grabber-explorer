@@ -9,6 +9,7 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { FAQ } from "@/components/FAQ";
 
 export default function Index() {
   const [hasSearched, setHasSearched] = useState(false);
@@ -165,6 +166,22 @@ export default function Index() {
                 </div>
               </div>
             </div>
+          </div>
+        </section>
+
+        {/* FAQ Section */}
+        <section 
+          className={cn(
+            "transition-all duration-300 px-4 md:px-0 py-8 md:py-16 lg:py-24",
+            hasSearched ? "hidden" : "bg-card/30"
+          )}
+        >
+          <div className="container px-4 md:px-6 max-w-4xl mx-auto">
+            <div className="text-center space-y-4 mb-8">
+              <h2 className="text-3xl font-bold tracking-tighter">Frequently Asked Questions</h2>
+              <p className="text-muted-foreground">Common questions about using RepoGrabber</p>
+            </div>
+            <FAQ />
           </div>
         </section>
       </main>
