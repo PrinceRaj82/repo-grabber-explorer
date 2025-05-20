@@ -23,36 +23,40 @@ export default function Index() {
       <main className="flex-1">
         <section 
           className={cn(
-            "transition-all duration-300 ease-in-out px-4 md:px-0",
+            "transition-all duration-300 ease-in-out px-4 md:px-6 flex flex-col items-center justify-center",
             hasSearched 
               ? "py-4 md:py-8" 
-              : "py-8 md:py-16 lg:py-24"
+              : "py-12 md:py-20 lg:py-28"
           )}
+          style={{
+            background: theme === 'dark' ? '#0c1222' : undefined,
+            minHeight: hasSearched ? 'auto' : '60vh'
+          }}
         >
-          <div className="container px-4 md:px-6 max-w-7xl">
+          <div className="container max-w-7xl">
             <div 
               className={cn(
                 "grid gap-6 transition-all duration-300",
                 hasSearched 
                   ? "grid-cols-1 max-w-3xl mx-auto" 
-                  : "lg:grid-cols-[1fr_500px] lg:gap-12"
+                  : "grid-cols-1 text-center"
               )}
             >
               <div 
                 className={cn(
-                  "flex flex-col justify-center space-y-4 transition-all duration-300", 
+                  "flex flex-col items-center justify-center space-y-6 transition-all duration-300", 
                   hasSearched && "hidden"
                 )}
               >
-                <div className="space-y-2">
-                  <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none gradient-text">
+                <div className="space-y-4 max-w-3xl mx-auto">
+                  <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none bg-gradient-to-r from-blue-500 to-amber-400 bg-clip-text text-transparent">
                     Download GitHub Code with Ease
                   </h1>
-                  <p className="max-w-[600px] text-muted-foreground md:text-xl">
+                  <p className="text-muted-foreground md:text-xl max-w-2xl mx-auto">
                     Easily download any public GitHub repository, folder, or file without using Git or command line tools
                   </p>
                 </div>
-                <div className="flex flex-col gap-2 min-[400px]:flex-row">
+                <div className="flex flex-col sm:flex-row gap-3 justify-center">
                   <Button size="lg" className="gap-1 bg-primary hover:bg-primary/90 hover-lift">
                     <Download className="h-4 w-4" />
                     Get Started
@@ -64,20 +68,20 @@ export default function Index() {
                     </Link>
                   </Button>
                 </div>
-                <div className="flex flex-wrap md:flex-row items-center gap-4 text-sm">
-                  <div className="flex items-center gap-1">
+                <div className="flex flex-wrap justify-center gap-6 text-sm mt-4">
+                  <div className="flex items-center gap-2">
                     <span className="inline-block w-4 h-4 rounded-full bg-accent" />
                     <span className="text-muted-foreground">No authentication required</span>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-2">
                     <span className="inline-block w-4 h-4 rounded-full bg-accent" />
                     <span className="text-muted-foreground">100% free & open source</span>
                   </div>
                 </div>
               </div>
               <div className={cn(
-                "transition-all duration-300",
-                !hasSearched && "bg-card/30 p-4 sm:p-6 rounded-xl border border-border/20 shadow-lg"
+                "transition-all duration-300 max-w-3xl mx-auto w-full",
+                !hasSearched && "mt-8 bg-card/30 p-4 sm:p-6 rounded-xl border border-border/20 shadow-lg"
               )}>
                 <RepoExplorer onSearch={(hasResults) => setHasSearched(!!hasResults)} />
               </div>
