@@ -1,7 +1,8 @@
-import { useState, useEffect, useCallback, useRef, forwardRef } from "react";
+
+import { useState, useEffect, useRef, forwardRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, X } from "lucide-react";
+import { Search } from "lucide-react";
 import { useDebounce } from "@/hooks/use-debounce";
 import { useQuery } from "@tanstack/react-query";
 import { searchRepo } from "@/lib/github";
@@ -21,12 +22,31 @@ export interface RepoExplorerProps {
 
 const RepoExplorer = forwardRef<HTMLInputElement, RepoExplorerProps>(
   ({ onSearch }, ref) => {
-    const [username, setUsername] = useState("");
-    const [repoName, setRepoName] = useState("");
-    const debouncedUsername = useDebounce(username, 500);
-    const debouncedRepoName = useDebounce(repoName, 500);
+    const [url, setUrl] = useState("");
+    const debouncedUrl = useDebounce(url, 500);
     const [isFocused, setIsFocused] = useState(false);
-
+    
+    // Extract username and repo from URL
+    const extractRepoInfo = (githubUrl: string) => {
+      try {
+        const regex = /github\.com\/([^\/]+)\/([^\/]+)/;
+        const matches = githubUrl.match(regex);
+        
+        if (matches && matches.length >= 3) {
+          return {
+            username: matches[1],
+            repoName: matches[2]
+          };
+        }
+        return { username: "", repoName: "" };
+      } catch (error) {
+        console.error("Error parsing GitHub URL:", error);
+        return { username: "", repoName: "" };
+      }
+    };
+    
+    const { username, repoName } = extractRepoInfo(debouncedUrl);
+    
     const inputRef = useRef<HTMLInputElement>(null);
 
     const {
@@ -35,9 +55,9 @@ const RepoExplorer = forwardRef<HTMLInputElement, RepoExplorerProps>(
       isError,
       error,
     } = useQuery({
-      queryKey: ["searchRepo", debouncedUsername, debouncedRepoName],
-      queryFn: () => searchRepo(debouncedUsername, debouncedRepoName),
-      enabled: !!debouncedUsername && !!debouncedRepoName,
+      queryKey: ["searchRepo", username, repoName],
+      queryFn: () => searchRepo(username, repoName),
+      enabled: !!username && !!repoName,
     });
 
     useEffect(() => {
@@ -47,8 +67,7 @@ const RepoExplorer = forwardRef<HTMLInputElement, RepoExplorerProps>(
     }, [searchResults, onSearch]);
 
     const handleClear = () => {
-      setUsername("");
-      setRepoName("");
+      setUrl("");
       if (onSearch) {
         onSearch(false);
       }
@@ -57,45 +76,36 @@ const RepoExplorer = forwardRef<HTMLInputElement, RepoExplorerProps>(
       }
     };
 
-    const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setUsername(e.target.value);
+    const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setUrl(e.target.value);
     };
-
-    const handleRepoNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setRepoName(e.target.value);
+    
+    const handleExplore = () => {
+      // This function will be called when the Explore button is clicked
+      // You can add additional functionality here if needed
+      console.log("Exploring URL:", url);
     };
 
     return (
-      <div className="relative">
-        <div className="flex items-center space-x-2">
+      <div className="relative space-y-4">
+        <div className="flex flex-col space-y-3">
           <Input
             type="text"
-            placeholder="GitHub Username"
-            value={username}
-            onChange={handleUsernameChange}
-            className="shadow-sm search-input"
+            placeholder="Enter GitHub URL (e.g., https://github.com/user/repo)"
+            value={url}
+            onChange={handleUrlChange}
+            className="w-full bg-background/90 px-4 py-3 h-12 rounded-lg shadow-sm search-input text-foreground"
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             ref={inputRef}
           />
-          <Input
-            type="text"
-            placeholder="Repository Name"
-            value={repoName}
-            onChange={handleRepoNameChange}
-            className="shadow-sm search-input"
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-          />
           <Button
             type="button"
-            onClick={handleClear}
-            variant="secondary"
-            size="icon"
-            className="shrink-0"
-            disabled={!username && !repoName}
+            onClick={handleExplore}
+            className="w-full bg-primary text-white hover:bg-primary/90 h-12 flex items-center justify-center gap-2 transition-all duration-300 rounded-lg"
           >
-            {username || repoName ? <X className="h-4 w-4" /> : <Search className="h-4 w-4" />}
+            <Search className="h-5 w-5" />
+            Explore
           </Button>
         </div>
 
