@@ -50,7 +50,7 @@ export default function HomePage() {
               "mainEntity": [
                 {
                   "@type": "Question",
-                  "name": "Can I download a complete GitHub repository?",
+                  "name": "Can I Download Complete GitHub Repository",
                   "acceptedAnswer": {
                     "@type": "Answer",
                     "text": "Yes, you can download any public GitHub repository as a ZIP file. Simply enter the repository URL in the search box and click the download button."
@@ -58,18 +58,18 @@ export default function HomePage() {
                 },
                 {
                   "@type": "Question",
-                  "name": "Is it possible to download a specific folder from a repository?",
+                  "name": "Can I Download Individual Files",
                   "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "Absolutely! RepoGrabber allows you to navigate through repositories and download specific folders. After searching for a repository, you can browse its contents and download any folder you need."
+                    "text": "Yes, you can download individual files from any public GitHub repository. Simply navigate to the desired file and click the download button to save it to your device."
                   }
                 },
                 {
                   "@type": "Question",
-                  "name": "Do I need a GitHub account to use RepoGrabber?",
+                  "name": "Is It Possible To Download A Specific Folder From A Repo",
                   "acceptedAnswer": {
                     "@type": "Answer",
-                    "text": "No, RepoGrabber works without requiring you to have a GitHub account or to be logged in. You can freely download public repositories, folders, and files anonymously."
+                    "text": "Absolutely! RepoGrabber allows you to navigate through repositories and download specific folders. After searching for a repository, you can browse its contents and download any folder you need."
                   }
                 }
               ]
