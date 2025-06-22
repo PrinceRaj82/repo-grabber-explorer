@@ -1,8 +1,7 @@
-
 import { useState, useEffect } from 'react';
 import { useGitHubApi, GitHubContent } from '@/hooks/useGitHubApi';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { parseGitHubUrl, getFileExtension, isBinaryFile, GitHubUrlInfo } from '@/utils/gitHubUtils';
+import { parseGitHubUrl, getFileExtension, isBinaryFile } from '@/utils/gitHubUtils';
 import { RepositoryCard } from './RepositoryCard';
 import { DownloadRecord } from './RecentDownloads';
 import { Button } from '@/components/ui/button';
