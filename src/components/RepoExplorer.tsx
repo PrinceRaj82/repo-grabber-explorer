@@ -3,12 +3,13 @@ import { useGitHubApi, GitHubContent } from '@/hooks/useGitHubApi';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { parseGitHubUrl, getFileExtension, isBinaryFile, GitHubUrlInfo } from '@/utils/gitHubUtils';
 import { RepositoryCard } from './RepositoryCard';
+import { FilePreview } from './FilePreview';
 import { DownloadRecord } from './RecentDownloads';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { Folder, File, Download, ArrowLeft, Github, Loader2, Search } from 'lucide-react';
+import { Folder, File, Download, ArrowLeft, Github, Loader2, Search, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -28,6 +29,8 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
   const [downloads, setDownloads] = useLocalStorage<DownloadRecord[]>('recent-downloads', []);
   const [isDownloading, setIsDownloading] = useState(false);
   const [downloadingFolders, setDownloadingFolders] = useState<{[key: string]: boolean}>({});
+  const [previewFile, setPreviewFile] = useState<GitHubContent | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const isMobile = useIsMobile();
   const [showInitialSearch, setShowInitialSearch] = useState(true);
   
@@ -183,6 +186,29 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
       });
     } finally {
       setIsDownloading(false);
+    }
+  };
+
+  // Handle file preview
+  const handleFilePreview = (fileContent: GitHubContent) => {
+    if (isMobile) {
+      // On mobile, just download the file
+      downloadFile(fileContent);
+      return;
+    }
+    
+    setPreviewFile(fileContent);
+    setIsPreviewOpen(true);
+  };
+
+  const closePreview = () => {
+    setIsPreviewOpen(false);
+    setPreviewFile(null);
+  };
+
+  const downloadPreviewFile = () => {
+    if (previewFile) {
+      downloadFile(previewFile);
     }
   };
 
@@ -676,6 +702,16 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
                                 )}
                               </Button>
                             )}
+                            {item.type === 'file' && !isMobile && (
+                              <Button 
+                                variant="ghost" 
+                                size="icon" 
+                                className="h-8 w-8 hover:bg-accent/10"
+                                onClick={() => handleFilePreview(item)}
+                              >
+                                <Eye className="h-4 w-4 text-primary" />
+                              </Button>
+                            )}
                             <Button 
                               variant="ghost" 
                               size="icon" 
@@ -732,6 +768,16 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
             </Card>
           ) : null}
         </div>
+      )}
+      
+      {/* File Preview Modal - Desktop Only */}
+      {previewFile && (
+        <FilePreview
+          file={previewFile}
+          isOpen={isPreviewOpen}
+          onClose={closePreview}
+          onDownload={downloadPreviewFile}
+        />
       )}
     </div>
   );
