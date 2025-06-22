@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback, useRef, forwardRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -22,36 +21,13 @@ export interface RepoExplorerProps {
 
 const RepoExplorer = forwardRef<HTMLInputElement, RepoExplorerProps>(
   ({ onSearch }, ref) => {
-    const [repoUrl, setRepoUrl] = useState("");
-    const debouncedRepoUrl = useDebounce(repoUrl, 500);
+    const [username, setUsername] = useState("");
+    const [repoName, setRepoName] = useState("");
+    const debouncedUsername = useDebounce(username, 500);
+    const debouncedRepoName = useDebounce(repoName, 500);
     const [isFocused, setIsFocused] = useState(false);
 
     const inputRef = useRef<HTMLInputElement>(null);
-
-    // Extract username and repo from GitHub URL
-    const parseGitHubUrl = (url: string) => {
-      if (!url) return { username: '', repoName: '' };
-      
-      // Handle different GitHub URL formats
-      const patterns = [
-        /github\.com\/([^\/]+)\/([^\/]+)/,
-        /^([^\/]+)\/([^\/]+)$/
-      ];
-      
-      for (const pattern of patterns) {
-        const match = url.match(pattern);
-        if (match) {
-          return {
-            username: match[1],
-            repoName: match[2].replace(/\.git$/, '')
-          };
-        }
-      }
-      
-      return { username: '', repoName: '' };
-    };
-
-    const { username, repoName } = parseGitHubUrl(debouncedRepoUrl);
 
     const {
       data: searchResults,
@@ -59,9 +35,9 @@ const RepoExplorer = forwardRef<HTMLInputElement, RepoExplorerProps>(
       isError,
       error,
     } = useQuery({
-      queryKey: ["searchRepo", username, repoName],
-      queryFn: () => searchRepo(username, repoName),
-      enabled: !!username && !!repoName,
+      queryKey: ["searchRepo", debouncedUsername, debouncedRepoName],
+      queryFn: () => searchRepo(debouncedUsername, debouncedRepoName),
+      enabled: !!debouncedUsername && !!debouncedRepoName,
     });
 
     useEffect(() => {
@@ -71,7 +47,8 @@ const RepoExplorer = forwardRef<HTMLInputElement, RepoExplorerProps>(
     }, [searchResults, onSearch]);
 
     const handleClear = () => {
-      setRepoUrl("");
+      setUsername("");
+      setRepoName("");
       if (onSearch) {
         onSearch(false);
       }
@@ -80,8 +57,12 @@ const RepoExplorer = forwardRef<HTMLInputElement, RepoExplorerProps>(
       }
     };
 
-    const handleUrlChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      setRepoUrl(e.target.value);
+    const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setUsername(e.target.value);
+    };
+
+    const handleRepoNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      setRepoName(e.target.value);
     };
 
     return (
@@ -89,13 +70,22 @@ const RepoExplorer = forwardRef<HTMLInputElement, RepoExplorerProps>(
         <div className="flex items-center space-x-2">
           <Input
             type="text"
-            placeholder="Enter GitHub repository URL or username/repo"
-            value={repoUrl}
-            onChange={handleUrlChange}
+            placeholder="GitHub Username"
+            value={username}
+            onChange={handleUsernameChange}
             className="shadow-sm search-input"
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
             ref={inputRef}
+          />
+          <Input
+            type="text"
+            placeholder="Repository Name"
+            value={repoName}
+            onChange={handleRepoNameChange}
+            className="shadow-sm search-input"
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
           />
           <Button
             type="button"
@@ -103,9 +93,9 @@ const RepoExplorer = forwardRef<HTMLInputElement, RepoExplorerProps>(
             variant="secondary"
             size="icon"
             className="shrink-0"
-            disabled={!repoUrl}
+            disabled={!username && !repoName}
           >
-            {repoUrl ? <X className="h-4 w-4" /> : <Search className="h-4 w-4" />}
+            {username || repoName ? <X className="h-4 w-4" /> : <Search className="h-4 w-4" />}
           </Button>
         </div>
 
