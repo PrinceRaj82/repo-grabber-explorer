@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Navbar } from "@/components/layout/Navbar";
 import { Footer } from "@/components/layout/Footer";
@@ -10,14 +9,14 @@ export default function About() {
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
-      <main className="flex-1 container py-8">
+      <main className="flex-1 container py-8" role="main">
         <div className="max-w-4xl mx-auto space-y-8">
-          <div className="space-y-2">
+          <header className="space-y-2">
             <h1 className="text-4xl font-bold tracking-tighter">About RepoGrabber</h1>
             <p className="text-xl text-muted-foreground">
-              A simple tool for downloading GitHub repositories, folders, and files
+              A simple tool for downloading GitHub repositories, folders, and files without Git
             </p>
-          </div>
+          </header>
 
           <Card>
             <CardHeader>
@@ -41,169 +40,176 @@ export default function About() {
                 repository structure, and download what you need with a single click.
               </p>
               
-              <div className="flex flex-wrap gap-3 mt-4">
+              <nav className="flex flex-wrap gap-3 mt-4" aria-label="Quick actions">
                 <Button asChild>
-                  <Link to="/" className="gap-2">
-                    <Download className="h-4 w-4" />
+                  <Link to="/" className="gap-2" aria-label="Try RepoGrabber now">
+                    <Download className="h-4 w-4" aria-hidden="true" />
                     Try It Now
                   </Link>
                 </Button>
                 <Button variant="outline" asChild>
-                  <Link to="/guide" className="gap-2">
-                    <FileIcon className="h-4 w-4" />
+                  <Link to="/guide" className="gap-2" aria-label="View user guide">
+                    <FileIcon className="h-4 w-4" aria-hidden="true" />
                     View Guide
                   </Link>
                 </Button>
-              </div>
+              </nav>
             </CardContent>
           </Card>
 
-          <div className="grid gap-6 md:grid-cols-3">
+          <section aria-labelledby="features-grid-heading">
+            <h2 id="features-grid-heading" className="sr-only">Key Features</h2>
+            <div className="grid gap-6 md:grid-cols-3" role="list">
+              <Card>
+                <CardHeader className="space-y-1">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                    <Github className="h-5 w-5 text-primary" />
+                  </div>
+                  <CardTitle className="text-xl">Repository Downloads</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    Download entire repositories with a single click. Perfect for getting started
+                    with new projects or studying codebases.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="space-y-1">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                    <FolderIcon className="h-5 w-5 text-primary" />
+                  </div>
+                  <CardTitle className="text-xl">Folder Downloads</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    Only interested in specific parts of a project? Navigate to any folder
+                    and download just what you need, compressed into a convenient zip file.
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="space-y-1">
+                  <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+                    <FileIcon className="h-5 w-5 text-primary" />
+                  </div>
+                  <CardTitle className="text-xl">File Downloads</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-muted-foreground">
+                    Need just a single file? RepoGrabber makes it easy to download individual
+                    files without having to clone the entire repository.
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </section>
+
+          <section aria-labelledby="how-it-works-heading">
             <Card>
-              <CardHeader className="space-y-1">
-                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-2">
-                  <Github className="h-5 w-5 text-primary" />
-                </div>
-                <CardTitle className="text-xl">Repository Downloads</CardTitle>
+              <CardHeader>
+                <CardTitle id="how-it-works-heading">How It Works</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Download entire repositories with a single click. Perfect for getting started
-                  with new projects or studying codebases.
+              <CardContent className="space-y-4">
+                <p>
+                  RepoGrabber uses the GitHub REST API to fetch repository information and
+                  content. It's entirely frontend-based, running in your browser without
+                  requiring a backend server. This makes it fast, secure, and easy to use.
                 </p>
+                
+                <p>
+                  For repositories and large folders, RepoGrabber leverages GitHub's native
+                  zip download functionality. For individual files and smaller folders, it
+                  fetches and packages content on-demand using JSZip.
+                </p>
+                
+                <p>
+                  Your recent downloads are stored locally in your browser using localStorage,
+                  making it easy to access your frequently used repositories without having to
+                  search for them again.
+                </p>
+                
+                <div className="flex justify-center mt-4">
+                  <Button asChild variant="outline">
+                    <Link to="/guide" className="gap-2">
+                      <FileIcon className="h-4 w-4" />
+                      Read the Full Guide
+                    </Link>
+                  </Button>
+                </div>
               </CardContent>
             </Card>
+          </section>
 
+          <section aria-labelledby="why-use-heading">
             <Card>
-              <CardHeader className="space-y-1">
-                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-2">
-                  <FolderIcon className="h-5 w-5 text-primary" />
-                </div>
-                <CardTitle className="text-xl">Folder Downloads</CardTitle>
+              <CardHeader>
+                <CardTitle id="why-use-heading">Why Use RepoGrabber?</CardTitle>
               </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Only interested in specific parts of a project? Navigate to any folder
-                  and download just what you need, compressed into a convenient zip file.
-                </p>
+              <CardContent className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="flex items-start gap-2">
+                    <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
+                      <Download className="h-3 w-3 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium">No Git Required</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Download repositories without installing Git or learning Git commands
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2">
+                    <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
+                      <Download className="h-3 w-3 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium">Selective Downloads</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Only download the parts of a repository you actually need
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2">
+                    <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
+                      <Download className="h-3 w-3 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium">No Authentication</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Access public repositories without creating a GitHub account
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-2">
+                    <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
+                      <Download className="h-3 w-3 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium">Mobile Friendly</h3>
+                      <p className="text-sm text-muted-foreground">
+                        Download GitHub content from any device, including smartphones and tablets
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex justify-center mt-6">
+                  <Button asChild>
+                    <Link to="/" className="gap-2">
+                      <Download className="h-4 w-4" />
+                      Start Using RepoGrabber Now
+                    </Link>
+                  </Button>
+                </div>
               </CardContent>
             </Card>
-
-            <Card>
-              <CardHeader className="space-y-1">
-                <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center mb-2">
-                  <FileIcon className="h-5 w-5 text-primary" />
-                </div>
-                <CardTitle className="text-xl">File Downloads</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Need just a single file? RepoGrabber makes it easy to download individual
-                  files without having to clone the entire repository.
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>How It Works</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <p>
-                RepoGrabber uses the GitHub REST API to fetch repository information and
-                content. It's entirely frontend-based, running in your browser without
-                requiring a backend server. This makes it fast, secure, and easy to use.
-              </p>
-              
-              <p>
-                For repositories and large folders, RepoGrabber leverages GitHub's native
-                zip download functionality. For individual files and smaller folders, it
-                fetches and packages content on-demand using JSZip.
-              </p>
-              
-              <p>
-                Your recent downloads are stored locally in your browser using localStorage,
-                making it easy to access your frequently used repositories without having to
-                search for them again.
-              </p>
-              
-              <div className="flex justify-center mt-4">
-                <Button asChild variant="outline">
-                  <Link to="/guide" className="gap-2">
-                    <FileIcon className="h-4 w-4" />
-                    Read the Full Guide
-                  </Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Why Use RepoGrabber?</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="flex items-start gap-2">
-                  <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
-                    <Download className="h-3 w-3 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">No Git Required</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Download repositories without installing Git or learning Git commands
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-2">
-                  <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
-                    <Download className="h-3 w-3 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Selective Downloads</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Only download the parts of a repository you actually need
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-2">
-                  <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
-                    <Download className="h-3 w-3 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">No Authentication</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Access public repositories without creating a GitHub account
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start gap-2">
-                  <div className="h-6 w-6 rounded-full bg-primary/10 flex items-center justify-center mt-0.5">
-                    <Download className="h-3 w-3 text-primary" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Mobile Friendly</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Download GitHub content from any device, including smartphones and tablets
-                    </p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="flex justify-center mt-6">
-                <Button asChild>
-                  <Link to="/" className="gap-2">
-                    <Download className="h-4 w-4" />
-                    Start Using RepoGrabber Now
-                  </Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+          </section>
         </div>
       </main>
       <Footer />
