@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useGitHubApi, GitHubContent } from '@/hooks/useGitHubApi';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
@@ -13,6 +12,7 @@ import { Folder, File, Download, ArrowLeft, Github, Loader2, Search } from 'luci
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useDebounce } from '@/hooks/use-debounce';
 import JSZip from 'jszip';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -30,6 +30,9 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
   const [downloadingFolders, setDownloadingFolders] = useState<{[key: string]: boolean}>({});
   const isMobile = useIsMobile();
   const [showInitialSearch, setShowInitialSearch] = useState(true);
+  
+  // Add debounced URL for auto-fetch
+  const debouncedUrl = useDebounce(url, 800);
   
   const {
     repo,
@@ -50,18 +53,20 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
     }
   }, [repo.data, onSearch]);
 
+  // Auto-fetch when URL changes
+  useEffect(() => {
+    if (debouncedUrl && debouncedUrl.includes('github.com')) {
+      handleExplore();
+    }
+  }, [debouncedUrl]);
+
   // Handle URL submission
   const handleExplore = async () => {
     try {
       const parsedUrl = parseGitHubUrl(url);
       
       if (parsedUrl.type === 'invalid') {
-        toast({
-          title: 'Invalid GitHub URL',
-          description: 'Please enter a valid GitHub repository URL',
-          variant: 'destructive'
-        });
-        return;
+        return; // Don't show error for auto-fetch, just return silently
       }
       
       // Reset path and breadcrumbs
@@ -96,11 +101,14 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
         }
       }
     } catch (error) {
-      toast({
-        title: 'Error',
-        description: error instanceof Error ? error.message : 'An unknown error occurred',
-        variant: 'destructive'
-      });
+      // Only show toast error if it's a manual action, not auto-fetch
+      if (url === debouncedUrl) {
+        toast({
+          title: 'Error',
+          description: error instanceof Error ? error.message : 'An unknown error occurred',
+          variant: 'destructive'
+        });
+      }
     }
   };
 
