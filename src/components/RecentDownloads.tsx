@@ -4,7 +4,7 @@ import { useLocalStorage } from '@/hooks/useLocalStorage';
 import { useGitHubApi } from '@/hooks/useGitHubApi';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download, Trash2, Github, Loader2 } from 'lucide-react';
+import { Download, Trash2, Github, Loader2, ExternalLink } from 'lucide-react';
 import { parseGitHubUrl } from '@/utils/gitHubUtils';
 import { useToast } from '@/hooks/use-toast';
 import JSZip from 'jszip';
@@ -231,14 +231,9 @@ export function RecentDownloads() {
                   {item.type === 'directory' && <Github className="h-4 w-4 flex-shrink-0" />}
                   {item.type === 'file' && <Github className="h-4 w-4 flex-shrink-0" />}
                   <div className="overflow-hidden">
-                    <a 
-                      href={item.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-medium hover:underline block truncate"
-                    >
+                    <div className="font-medium block truncate">
                       {displayName}
-                    </a>
+                    </div>
                     <p className="text-xs text-muted-foreground truncate">
                       {owner}/{repo}{path ? `/${path}` : ''}
                     </p>
@@ -257,6 +252,16 @@ export function RecentDownloads() {
                     ) : (
                       <Download className="h-4 w-4" />
                     )}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    asChild
+                  >
+                    <a href={item.url} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="h-4 w-4" />
+                    </a>
                   </Button>
                   <Button 
                     variant="ghost" 

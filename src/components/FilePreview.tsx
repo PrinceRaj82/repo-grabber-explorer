@@ -4,7 +4,7 @@ import { GitHubContent } from '@/hooks/useGitHubApi';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { X, Download, ExternalLink } from 'lucide-react';
+import { X, Download, ExternalLink, FileImage, FileVideo, FileAudio, FileText } from 'lucide-react';
 import { getFileExtension, isBinaryFile } from '@/utils/gitHubUtils';
 import { cn } from '@/lib/utils';
 
@@ -35,19 +35,18 @@ export function FilePreview({ file, isOpen, onClose, onDownload }: FilePreviewPr
     try {
       const extension = getFileExtension(file.name);
       
-      if (isBinaryFile(extension)) {
-        setContent('Binary file - Preview not available');
-        setLoading(false);
-        return;
-      }
-
       const response = await fetch(file.download_url);
       if (!response.ok) {
         throw new Error('Failed to fetch file content');
       }
       
-      const text = await response.text();
-      setContent(text);
+      if (isBinaryFile(extension)) {
+        // For binary files, we'll show a preview based on file type
+        setContent('');
+      } else {
+        const text = await response.text();
+        setContent(text);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load file');
     } finally {
@@ -84,6 +83,106 @@ export function FilePreview({ file, isOpen, onClose, onDownload }: FilePreviewPr
     };
     
     return languageMap[ext] || 'text';
+  };
+
+  const getFileTypeIcon = (filename: string) => {
+    const ext = getFileExtension(filename).toLowerCase();
+    
+    if (['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'bmp', 'ico'].includes(ext)) {
+      return <FileImage className="h-8 w-8 text-blue-500" />;
+    }
+    if (['mp4', 'avi', 'mov', 'wmv', 'flv', 'webm', 'mkv'].includes(ext)) {
+      return <FileVideo className="h-8 w-8 text-purple-500" />;
+    }
+    if (['mp3', 'wav', 'flac', 'aac', 'ogg', 'wma'].includes(ext)) {
+      return <FileAudio className="h-8 w-8 text-green-500" />;
+    }
+    return <FileText className="h-8 w-8 text-gray-500" />;
+  };
+
+  const isImageFile = (filename: string) => {
+    const ext = getFileExtension(filename).toLowerCase();
+    return ['jpg', 'jpeg', 'png', 'gif', 'svg', 'webp', 'bmp', 'ico'].includes(ext);
+  };
+
+  const isVideoFile = (filename: string) => {
+    const ext = getFileExtension(filename).toLowerCase();
+    return ['mp4', 'avi', 'mov', 'wmv', 'flv', 'webm', 'mkv'].includes(ext);
+  };
+
+  const isAudioFile = (filename: string) => {
+    const ext = getFileExtension(filename).toLowerCase();
+    return ['mp3', 'wav', 'flac', 'aac', 'ogg', 'wma'].includes(ext);
+  };
+
+  const renderBinaryPreview = () => {
+    if (isImageFile(file.name)) {
+      return (
+        <div className="flex flex-col items-center justify-center h-full p-4">
+          <img 
+            src={file.download_url!} 
+            alt={file.name}
+            className="max-w-full max-h-96 object-contain rounded-md shadow-lg"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = 'none';
+              setError('Failed to load image preview');
+            }}
+          />
+          <p className="text-sm text-muted-foreground mt-2">{file.name}</p>
+        </div>
+      );
+    }
+
+    if (isVideoFile(file.name)) {
+      return (
+        <div className="flex flex-col items-center justify-center h-full p-4">
+          <video 
+            src={file.download_url!} 
+            controls
+            className="max-w-full max-h-96 rounded-md shadow-lg"
+            onError={() => setError('Failed to load video preview')}
+          >
+            Your browser does not support the video tag.
+          </video>
+          <p className="text-sm text-muted-foreground mt-2">{file.name}</p>
+        </div>
+      );
+    }
+
+    if (isAudioFile(file.name)) {
+      return (
+        <div className="flex flex-col items-center justify-center h-full p-4">
+          <div className="bg-muted/20 p-8 rounded-lg">
+            {getFileTypeIcon(file.name)}
+          </div>
+          <audio 
+            src={file.download_url!} 
+            controls
+            className="mt-4"
+            onError={() => setError('Failed to load audio preview')}
+          >
+            Your browser does not support the audio tag.
+          </audio>
+          <p className="text-sm text-muted-foreground mt-2">{file.name}</p>
+        </div>
+      );
+    }
+
+    // For other binary files, show file info
+    return (
+      <div className="flex flex-col items-center justify-center h-full p-4">
+        <div className="bg-muted/20 p-8 rounded-lg mb-4">
+          {getFileTypeIcon(file.name)}
+        </div>
+        <h3 className="font-medium text-lg mb-2">{file.name}</h3>
+        <p className="text-sm text-muted-foreground mb-4">
+          Binary file ({Math.round(file.size / 1024)}KB)
+        </p>
+        <p className="text-sm text-muted-foreground text-center">
+          This file type cannot be previewed as text. Click download to save the file.
+        </p>
+      </div>
+    );
   };
 
   if (!isOpen) return null;
@@ -137,6 +236,8 @@ export function FilePreview({ file, isOpen, onClose, onDownload }: FilePreviewPr
               <div className="flex items-center justify-center h-full">
                 <div className="text-destructive">{error}</div>
               </div>
+            ) : isBinaryFile(getFileExtension(file.name)) ? (
+              renderBinaryPreview()
             ) : (
               <pre className={cn(
                 "p-4 text-sm font-mono whitespace-pre-wrap break-words",
