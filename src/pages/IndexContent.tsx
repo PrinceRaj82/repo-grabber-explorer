@@ -1,3 +1,4 @@
+
 import { RepoExplorer } from "@/components/RepoExplorer";
 import { RecentDownloads } from "@/components/RecentDownloads";
 import { Navbar } from "@/components/layout/Navbar";
@@ -10,13 +11,13 @@ import { cn } from "@/lib/utils";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { FAQ } from "@/components/FAQ";
+
 export default function Index() {
   const [hasSearched, setHasSearched] = useState(false);
-  const {
-    theme
-  } = useTheme();
+  const { theme } = useTheme();
   const isMobile = useIsMobile();
   const inputRef = useRef(null);
+  
   const focusInput = () => {
     if (inputRef.current) {
       // Use setTimeout to ensure input is focused after rendering
@@ -25,16 +26,38 @@ export default function Index() {
       }, 100);
     }
   };
-  return <div className="flex flex-col min-h-screen">
+  
+  return (
+    <div className="flex flex-col min-h-screen">
       <Navbar onSearchStateChange={setHasSearched} />
       <main className="flex-1">
-        <section className={cn("transition-all duration-300 ease-in-out px-4 md:px-6 flex flex-col items-center justify-center", hasSearched ? "py-4 md:py-8" : "py-12 md:py-20 lg:py-28")} style={{
-        background: theme === 'dark' ? '#0c1222' : undefined,
-        minHeight: hasSearched ? 'auto' : '100vh'
-      }}>
+        <section 
+          className={cn(
+            "transition-all duration-300 ease-in-out px-4 md:px-6 flex flex-col items-center justify-center",
+            hasSearched 
+              ? "py-4 md:py-8" 
+              : "py-12 md:py-20 lg:py-28"
+          )}
+          style={{
+            background: theme === 'dark' ? '#0c1222' : undefined,
+            minHeight: hasSearched ? 'auto' : '100vh'
+          }}
+        >
           <div className="container max-w-7xl">
-            <div className={cn("grid gap-6 transition-all duration-300", hasSearched ? "grid-cols-1 max-w-3xl mx-auto" : "grid-cols-1 text-center")}>
-              <div className={cn("flex flex-col items-center justify-center space-y-6 transition-all duration-300", hasSearched && "hidden")}>
+            <div 
+              className={cn(
+                "grid gap-6 transition-all duration-300",
+                hasSearched 
+                  ? "grid-cols-1 max-w-3xl mx-auto" 
+                  : "grid-cols-1 text-center"
+              )}
+            >
+              <div 
+                className={cn(
+                  "flex flex-col items-center justify-center space-y-6 transition-all duration-300", 
+                  hasSearched && "hidden"
+                )}
+              >
                 <div className="space-y-4 max-w-5xl mx-auto">
                   <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none whitespace-normal lg:whitespace-nowrap bg-gradient-to-r from-blue-500 via-blue-300 to-amber-400 bg-clip-text text-transparent">
                     Download GitHub Code with Ease
@@ -62,18 +85,26 @@ export default function Index() {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="inline-block w-4 h-4 rounded-full bg-accent" />
-                    <span className="text-muted-foreground">100% free</span>
+                    <span className="text-muted-foreground">100% free & open source</span>
                   </div>
                 </div>
               </div>
-              <div className={cn("transition-all duration-300 max-w-3xl mx-auto w-full", !hasSearched && "mt-8 bg-card/30 p-4 sm:p-6 rounded-xl border border-border/20 shadow-lg")}>
-                <RepoExplorer onSearch={hasResults => setHasSearched(!!hasResults)} ref={inputRef} />
+              <div className={cn(
+                "transition-all duration-300 max-w-3xl mx-auto w-full",
+                !hasSearched && "mt-8 bg-card/30 p-4 sm:p-6 rounded-xl border border-border/20 shadow-lg"
+              )}>
+                <RepoExplorer onSearch={(hasResults) => setHasSearched(!!hasResults)} ref={inputRef} />
               </div>
             </div>
           </div>
         </section>
 
-        <section className={cn("transition-all duration-300 ease-in-out px-4 md:px-0", hasSearched ? "py-4 md:py-6 bg-card/50" : "py-8 md:py-12 lg:py-16 bg-card/50")}>
+        <section 
+          className={cn(
+            "transition-all duration-300 ease-in-out px-4 md:px-0",
+            hasSearched ? "py-4 md:py-6 bg-card/50" : "py-8 md:py-12 lg:py-16 bg-card/50"
+          )}
+        >
           <div className="container px-4 md:px-6 max-w-7xl">
             <div className="space-y-6">
               <div className="space-y-2 text-center">
@@ -91,7 +122,12 @@ export default function Index() {
           </div>
         </section>
 
-        <section className={cn("transition-all duration-300 bg-background px-4 md:px-0", hasSearched ? "hidden" : "py-8 md:py-16 lg:py-24")}>
+        <section 
+          className={cn(
+            "transition-all duration-300 bg-background px-4 md:px-0",
+            hasSearched ? "hidden" : "py-8 md:py-16 lg:py-24"
+          )}
+        >
           <div className="container px-4 md:px-6 max-w-7xl">
             <div className="mx-auto grid max-w-5xl items-center gap-6 py-6 md:py-12 lg:grid-cols-2 lg:gap-12">
               <div className="space-y-4">
@@ -149,7 +185,12 @@ export default function Index() {
         </section>
 
         {/* FAQ Section */}
-        <section className={cn("transition-all duration-300 px-4 md:px-0 py-8 md:py-16 lg:py-24", hasSearched ? "hidden" : "bg-card/30")}>
+        <section 
+          className={cn(
+            "transition-all duration-300 px-4 md:px-0 py-8 md:py-16 lg:py-24",
+            hasSearched ? "hidden" : "bg-card/30"
+          )}
+        >
           <div className="container px-4 md:px-6 max-w-4xl mx-auto">
             <div className="text-center space-y-4 mb-8">
               <h2 className="text-3xl font-bold tracking-tighter">Frequently Asked Questions</h2>
@@ -160,5 +201,6 @@ export default function Index() {
         </section>
       </main>
       <Footer />
-    </div>;
+    </div>
+  );
 }

@@ -13,10 +13,6 @@ const nextConfig = {
     };
     return config;
   },
-  // Add typescript config path
-  typescript: {
-    tsconfigPath: 'tsconfig.next.json',
-  },
 };
 
 module.exports = nextConfig;
