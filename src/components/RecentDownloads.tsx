@@ -1,14 +1,13 @@
-
 import { useState, useEffect } from 'react';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { useGitHubApi } from '@/hooks/useGitHubApi';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Download, Trash2, Github, Loader2, ExternalLink } from 'lucide-react';
+import { Trash2, Github } from 'lucide-react';
+import { RecentDownloadItem } from './RecentDownloadItem';
+import { useGitHubApi } from '@/hooks/useGitHubApi';
 import { parseGitHubUrl } from '@/utils/gitHubUtils';
 import { useToast } from '@/hooks/use-toast';
 import JSZip from 'jszip';
-import { v4 as uuidv4 } from 'uuid';
 
 export interface DownloadRecord {
   id: string;
@@ -39,7 +38,6 @@ export function RecentDownloads() {
 
   const handleDownload = async (item: DownloadRecord) => {
     try {
-      // Set downloading state for this item
       setDownloadingItems(prev => ({ ...prev, [item.id]: true }));
       
       const { owner, repo, path, type } = parseGitHubUrl(item.url);
@@ -48,9 +46,7 @@ export function RecentDownloads() {
         throw new Error('Invalid GitHub URL');
       }
       
-      // Different handling based on content type
       if (item.type === 'file') {
-        // For files, fetch the file content and download it
         const fileData = await fetchFile(item.url);
         if (!fileData || !fileData.download_url) {
           throw new Error('Failed to fetch file data');
@@ -77,10 +73,8 @@ export function RecentDownloads() {
         });
       } 
       else if (item.type === 'directory') {
-        // For directories, fetch contents recursively and create a zip
         const zip = new JSZip();
         
-        // Function to recursively fetch and add files to zip
         const addToZip = async (
           contentPath: string, 
           zipFolder: JSZip = zip
@@ -123,7 +117,6 @@ export function RecentDownloads() {
           }
         }
         
-        // Generate zip file
         const blob = await zip.generateAsync({ type: 'blob' });
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -140,7 +133,6 @@ export function RecentDownloads() {
         });
       } 
       else if (item.type === 'repository') {
-        // For repositories, use the GitHub download link
         const repoData = await fetchRepo(item.url);
         if (!repoData) {
           throw new Error('Failed to fetch repository data');
@@ -148,7 +140,6 @@ export function RecentDownloads() {
         
         const repoUrl = `https://github.com/${owner}/${repo}/archive/refs/heads/${repoData.default_branch}.zip`;
         
-        // Create an invisible link and click it
         const a = document.createElement('a');
         a.href = repoUrl;
         a.download = `${repo}.zip`;
@@ -168,7 +159,6 @@ export function RecentDownloads() {
         variant: 'destructive'
       });
     } finally {
-      // Clear downloading state for this item
       setDownloadingItems(prev => {
         const updated = { ...prev };
         delete updated[item.id];
@@ -212,69 +202,15 @@ export function RecentDownloads() {
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          {downloads.slice(0, 5).map((item) => {
-            const { owner, repo, path } = parseGitHubUrl(item.url);
-            const displayName = item.name || 
-              (item.type === 'repository' ? repo : 
-              item.type === 'file' ? path?.split('/').pop() : 
-              path || 'Unknown');
-            
-            const isDownloading = downloadingItems[item.id];
-                
-            return (
-              <div 
-                key={item.id}
-                className="flex items-center justify-between p-2 rounded-md hover:bg-muted/50"
-              >
-                <div className="flex items-center gap-2 overflow-hidden">
-                  {item.type === 'repository' && <Github className="h-4 w-4 flex-shrink-0" />}
-                  {item.type === 'directory' && <Github className="h-4 w-4 flex-shrink-0" />}
-                  {item.type === 'file' && <Github className="h-4 w-4 flex-shrink-0" />}
-                  <div className="overflow-hidden">
-                    <div className="font-medium block truncate">
-                      {displayName}
-                    </div>
-                    <p className="text-xs text-muted-foreground truncate">
-                      {owner}/{repo}{path ? `/${path}` : ''}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1">
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8"
-                    onClick={() => handleDownload(item)}
-                    disabled={isDownloading}
-                  >
-                    {isDownloading ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <Download className="h-4 w-4" />
-                    )}
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8"
-                    asChild
-                  >
-                    <a href={item.url} target="_blank" rel="noopener noreferrer">
-                      <ExternalLink className="h-4 w-4" />
-                    </a>
-                  </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8 text-muted-foreground hover:text-destructive" 
-                    onClick={() => handleRemove(item.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-            );
-          })}
+          {downloads.slice(0, 5).map((item) => (
+            <RecentDownloadItem
+              key={item.id}
+              item={item}
+              isDownloading={downloadingItems[item.id]}
+              onDownload={handleDownload}
+              onRemove={handleRemove}
+            />
+          ))}
         </div>
       </CardContent>
     </Card>

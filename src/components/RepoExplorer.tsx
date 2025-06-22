@@ -1,21 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useGitHubApi, GitHubContent } from '@/hooks/useGitHubApi';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
-import { parseGitHubUrl, getFileExtension, isBinaryFile, GitHubUrlInfo } from '@/utils/gitHubUtils';
+import { parseGitHubUrl, GitHubUrlInfo } from '@/utils/gitHubUtils';
 import { RepositoryCard } from './RepositoryCard';
 import { FilePreview } from './FilePreview';
+import { SearchBox } from './SearchBox';
+import { Breadcrumbs } from './Breadcrumbs';
+import { FileList } from './FileList';
 import { DownloadRecord } from './RecentDownloads';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Folder, File, Download, ArrowLeft, Github, Loader2, Search, Eye } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useDebounce } from '@/hooks/use-debounce';
 import JSZip from 'jszip';
 import { v4 as uuidv4 } from 'uuid';
+import { getFileExtension, isBinaryFile } from '@/utils/gitHubUtils';
 
 interface RepoExplorerProps {
   onSearch?: (hasResults: boolean) => void;
@@ -34,7 +32,6 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
   const isMobile = useIsMobile();
   const [showInitialSearch, setShowInitialSearch] = useState(true);
   
-  // Add debounced URL for auto-fetch
   const debouncedUrl = useDebounce(url, 800);
   
   const {
@@ -47,7 +44,6 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
   } = useGitHubApi();
 
   useEffect(() => {
-    // Call onSearch callback when repo data changes
     if (onSearch) {
       onSearch(!!repo.data);
     }
@@ -56,23 +52,20 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
     }
   }, [repo.data, onSearch]);
 
-  // Auto-fetch when URL changes
   useEffect(() => {
     if (debouncedUrl && debouncedUrl.includes('github.com')) {
       handleExplore();
     }
   }, [debouncedUrl]);
 
-  // Handle URL submission
   const handleExplore = async () => {
     try {
       const parsedUrl = parseGitHubUrl(url);
       
       if (parsedUrl.type === 'invalid') {
-        return; // Don't show error for auto-fetch, just return silently
+        return;
       }
       
-      // Reset path and breadcrumbs
       setPath('');
       setBreadcrumbs([]);
       
@@ -85,7 +78,6 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
         const repoData = await fetchRepo(`https://github.com/${parsedUrl.owner}/${parsedUrl.repo}`);
         if (repoData && parsedUrl.path) {
           setPath(parsedUrl.path);
-          // Create breadcrumbs
           const pathParts = parsedUrl.path.split('/');
           const crumbs = pathParts.map((part, index) => ({
             name: part,
@@ -95,16 +87,13 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
           await fetchContents(url, parsedUrl.path);
         }
       } else if (parsedUrl.type === 'file') {
-        // New direct file download functionality
         const fileData = await fetchFile(url);
         if (fileData) {
-          // Successfully fetched file data, now download it directly
           await downloadFileDirect(fileData, parsedUrl);
-          return; // Exit early since we've handled the file download
+          return;
         }
       }
     } catch (error) {
-      // Only show toast error if it's a manual action, not auto-fetch
       if (url === debouncedUrl) {
         toast({
           title: 'Error',
@@ -115,7 +104,6 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
     }
   };
 
-  // Direct file download functionality
   const downloadFileDirect = async (fileContent: GitHubContent, parsedUrl: GitHubUrlInfo) => {
     try {
       if (!fileContent.download_url) {
@@ -143,7 +131,6 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
       
-      // Add to recent downloads
       const newDownload: DownloadRecord = {
         id: uuidv4(),
         url: fileContent.html_url,
@@ -158,11 +145,9 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
         description: `Successfully downloaded ${fileContent.name}`
       });
 
-      // Show repo data for context
       if (parsedUrl.owner && parsedUrl.repo) {
         const repoData = await fetchRepo(`https://github.com/${parsedUrl.owner}/${parsedUrl.repo}`);
         if (repoData) {
-          // Create breadcrumbs for file
           if (parsedUrl.path) {
             const pathParts = parsedUrl.path.split('/');
             const fileName = pathParts.pop() || '';
@@ -189,10 +174,8 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
     }
   };
 
-  // Handle file preview
   const handleFilePreview = (fileContent: GitHubContent) => {
     if (isMobile) {
-      // On mobile, just download the file
       downloadFile(fileContent);
       return;
     }
@@ -212,14 +195,12 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
     }
   };
 
-  // Navigate to folder
   const navigateToFolder = async (folderPath: string) => {
     if (!repo.data) return;
     
     try {
       setPath(folderPath);
       
-      // Update breadcrumbs
       const pathParts = folderPath.split('/');
       const crumbs = pathParts.map((part, index) => ({
         name: part,
@@ -237,7 +218,6 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
     }
   };
 
-  // Go back to parent folder
   const goToParentFolder = async () => {
     if (!path || !repo.data) return;
     
@@ -248,7 +228,6 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
       
       setPath(parentPath);
       
-      // Update breadcrumbs
       const crumbs = pathParts.map((part, index) => ({
         name: part,
         path: pathParts.slice(0, index + 1).join('/')
@@ -265,12 +244,10 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
     }
   };
 
-  // Return to initial search
   const backToSearch = () => {
     setShowInitialSearch(true);
   };
 
-  // Download file
   const downloadFile = async (fileContent: GitHubContent) => {
     try {
       if (!fileContent.download_url) {
@@ -297,7 +274,6 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
       
-      // Add to recent downloads
       const newDownload: DownloadRecord = {
         id: uuidv4(),
         url: fileContent.html_url,
@@ -320,17 +296,14 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
     }
   };
 
-  // Download specific folder
   const downloadSpecificFolder = async (folderPath: string, folderName: string) => {
     if (!repo.data) return;
     
     try {
-      // Mark this folder as currently downloading
       setDownloadingFolders(prev => ({ ...prev, [folderPath]: true }));
       
       const zip = new JSZip();
       
-      // Function to recursively fetch and add files to zip
       const addToZip = async (
         contentPath: string, 
         zipFolder: JSZip = zip
@@ -374,7 +347,6 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
       
       await addToZip(folderPath);
       
-      // Generate zip file
       const blob = await zip.generateAsync({ type: 'blob' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -385,7 +357,6 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
       
-      // Add to recent downloads
       const downloadUrl = `https://github.com/${repo.data.owner.login}/${repo.data.name}/tree/main/${folderPath}`;
       
       const newDownload: DownloadRecord = {
@@ -408,7 +379,6 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
         variant: 'destructive'
       });
     } finally {
-      // Mark this folder as no longer downloading
       setDownloadingFolders(prev => {
         const updated = { ...prev };
         delete updated[folderPath];
@@ -417,7 +387,6 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
     }
   };
 
-  // Download directory
   const downloadDirectory = async () => {
     if (!repo.data || !contents.data) return;
     
@@ -425,7 +394,6 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
       setIsDownloading(true);
       const zip = new JSZip();
       
-      // Function to recursively fetch and add files to zip
       const addToZip = async (
         contentItems: GitHubContent[], 
         currentPath: string = '', 
@@ -467,18 +435,16 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
       
       await addToZip(contents.data);
       
-      // Generate zip file
       const blob = await zip.generateAsync({ type: 'blob' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = path ? `${path.split('/').pop()}.zip` : `${repo.data.name}.zip`;
+      a.download = path ? `${path.split('/').pop()}.zip`  : `${repo.data.name}.zip`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       window.URL.revokeObjectURL(url);
       
-      // Add to recent downloads
       const downloadUrl = path
         ? `https://github.com/${repo.data.owner.login}/${repo.data.name}/tree/main/${path}`
         : repo.data.html_url;
@@ -507,7 +473,6 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
     }
   };
   
-  // Download entire repository
   const downloadRepository = async () => {
     if (!repo.data) return;
     
@@ -516,7 +481,6 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
       
       const repoUrl = `https://github.com/${repo.data.owner.login}/${repo.data.name}/archive/refs/heads/${repo.data.default_branch}.zip`;
       
-      // Create an invisible link and click it
       const a = document.createElement('a');
       a.href = repoUrl;
       a.download = `${repo.data.name}.zip`;
@@ -524,7 +488,6 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
       a.click();
       document.body.removeChild(a);
       
-      // Add to recent downloads
       const newDownload: DownloadRecord = {
         id: uuidv4(),
         url: repo.data.html_url,
@@ -552,225 +515,41 @@ export function RepoExplorer({ onSearch }: RepoExplorerProps) {
   return (
     <div className="w-full space-y-4">
       {showInitialSearch || !repo.data ? (
-        <Card className="border border-border/40 backdrop-blur-sm animate-fade-in hover-scale max-w-2xl mx-auto">
-          <CardHeader className="pb-3">
-            <div className="search-container p-0 sm:p-4 animate-fade-in">
-              <div className="flex flex-col gap-2">
-                <Input
-                  type="text"
-                  placeholder="Enter GitHub URL (e.g., https://github.com/user/repo)"
-                  value={url}
-                  onChange={(e) => setUrl(e.target.value)}
-                  className="search-input flex-grow text-base"
-                  style={{ fontSize: isMobile ? '16px' : '14px' }} // Prevent zoom on mobile
-                />
-                <Button 
-                  onClick={handleExplore} 
-                  disabled={!url || repo.loading}
-                  className="search-button w-full sm:w-auto py-6 sm:py-4"
-                >
-                  {isDownloading || repo.loading ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      {isDownloading ? 'Downloading...' : 'Loading...'}
-                    </>
-                  ) : (
-                    <>
-                      <Search className="mr-2 h-4 w-4" />
-                      Explore
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {repo.error && (
-              <div className="bg-destructive/10 text-destructive p-3 rounded-md mb-4">
-                {repo.error}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <SearchBox
+          url={url}
+          onUrlChange={setUrl}
+          onExplore={handleExplore}
+          isLoading={repo.loading}
+          error={repo.error}
+        />
       ) : (
         <div className="max-w-3xl mx-auto animate-fade-in space-y-4">
           <RepositoryCard repo={repo.data} onBack={backToSearch} />
           
-          {/* Breadcrumbs */}
-          {breadcrumbs.length > 0 && (
-            <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-md border border-border/30 rounded-md pb-1">
-              <ScrollArea className="w-full py-1 px-2">
-                <div className="flex items-center flex-nowrap gap-1 text-sm">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-7 px-2 whitespace-nowrap flex-shrink-0 hover:bg-accent/10 hover:text-accent"
-                    onClick={() => navigateToFolder('')}
-                  >
-                    <Github className="h-4 w-4 mr-1 text-accent" />
-                    <span>Root</span>
-                  </Button>
-                  
-                  {breadcrumbs.map((crumb, index) => (
-                    <div key={crumb.path} className="flex items-center flex-shrink-0">
-                      <span className="mx-1 text-muted-foreground">/</span>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="h-7 px-2 whitespace-nowrap hover:bg-accent/10 hover:text-accent"
-                        onClick={() => navigateToFolder(crumb.path)}
-                      >
-                        {crumb.name}
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </ScrollArea>
-            </div>
-          )}
+          <Breadcrumbs 
+            breadcrumbs={breadcrumbs}
+            onNavigate={navigateToFolder}
+          />
           
-          {/* Content listing */}
-          {contents.loading ? (
-            <div className="flex justify-center p-8 animate-pulse">
-              <Loader2 className="h-8 w-8 animate-spin text-accent" />
-            </div>
-          ) : contents.data ? (
-            <Card className="border border-border/40">
-              <ScrollArea className="w-full max-h-[500px] bg-card/30">
-                {path && (
-                  <div className="border-b border-border/40 p-2 sticky top-0 bg-card/90 backdrop-blur-sm z-10">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={goToParentFolder}
-                      className="h-8 px-2 hover:bg-accent/10 hover:text-accent"
-                    >
-                      <ArrowLeft className="h-4 w-4 mr-1" />
-                      Up to parent directory
-                    </Button>
-                  </div>
-                )}
-                
-                {contents.data.length === 0 ? (
-                  <div className="p-8 text-center text-muted-foreground">
-                    This directory is empty
-                  </div>
-                ) : (
-                  <div className="divide-y divide-border/20">
-                    {contents.data
-                      .sort((a, b) => {
-                        // Directories first, then files
-                        if (a.type === 'dir' && b.type !== 'dir') return -1;
-                        if (a.type !== 'dir' && b.type === 'dir') return 1;
-                        // Alphabetically within each type
-                        return a.name.localeCompare(b.name);
-                      })
-                      .map((item) => (
-                        <div 
-                          key={item.sha} 
-                          className={cn(
-                            "p-2 flex items-center justify-between transition-colors",
-                            "hover:bg-accent/5 animate-slide-in"
-                          )}
-                        >
-                          <div 
-                            className="flex items-center gap-2 overflow-hidden cursor-pointer flex-1"
-                            onClick={() => item.type === 'dir' ? navigateToFolder(item.path) : undefined}
-                          >
-                            {item.type === 'dir' ? (
-                              <Folder className="h-4 w-4 text-accent flex-shrink-0" />
-                            ) : (
-                              <File className="h-4 w-4 text-primary flex-shrink-0" />
-                            )}
-                            <span className="truncate">
-                              {item.name}
-                            </span>
-                          </div>
-                          <div className="flex flex-shrink-0 gap-1">
-                            {item.type === 'dir' && (
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="h-8 w-8 hover:bg-accent/10"
-                                onClick={() => downloadSpecificFolder(item.path, item.name)}
-                                disabled={downloadingFolders[item.path]}
-                              >
-                                {downloadingFolders[item.path] ? (
-                                  <Loader2 className="h-4 w-4 text-accent animate-spin" />
-                                ) : (
-                                  <Download className="h-4 w-4 text-accent" />
-                                )}
-                              </Button>
-                            )}
-                            {item.type === 'file' && !isMobile && (
-                              <Button 
-                                variant="ghost" 
-                                size="icon" 
-                                className="h-8 w-8 hover:bg-accent/10"
-                                onClick={() => handleFilePreview(item)}
-                              >
-                                <Eye className="h-4 w-4 text-primary" />
-                              </Button>
-                            )}
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-8 w-8 hover:bg-accent/10"
-                              onClick={() => item.type === 'dir' 
-                                ? navigateToFolder(item.path)
-                                : downloadFile(item)
-                              }
-                            >
-                              {item.type === 'dir' ? (
-                                <Folder className="h-4 w-4 text-accent" />
-                              ) : (
-                                <Download className="h-4 w-4 text-primary" />
-                              )}
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
-                  </div>
-                )}
-              </ScrollArea>
-
-              <CardFooter className="flex justify-end gap-2 border-t border-border/20 pt-3">
-                {path ? (
-                  <Button 
-                    variant="outline"
-                    onClick={downloadDirectory}
-                    disabled={isDownloading || !contents.data}
-                    className="border-accent/30 hover:border-accent hover:bg-accent/10 hover:text-accent"
-                  >
-                    {isDownloading ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <Download className="mr-2 h-4 w-4" />
-                    )}
-                    Download this directory
-                  </Button>
-                ) : (
-                  <Button 
-                    variant="outline"
-                    onClick={downloadRepository}
-                    disabled={isDownloading}
-                    className="border-accent/30 hover:border-accent hover:bg-accent/10 hover:text-accent"
-                  >
-                    {isDownloading ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    ) : (
-                      <Download className="mr-2 h-4 w-4" />
-                    )}
-                    Download entire repository
-                  </Button>
-                )}
-              </CardFooter>
-            </Card>
-          ) : null}
+          {contents.data && (
+            <FileList
+              contents={contents.data}
+              path={path}
+              isLoading={contents.loading}
+              downloadingFolders={downloadingFolders}
+              onNavigateToFolder={navigateToFolder}
+              onGoToParent={goToParentFolder}
+              onFilePreview={handleFilePreview}
+              onDownloadFile={downloadFile}
+              onDownloadFolder={downloadSpecificFolder}
+              onDownloadDirectory={downloadDirectory}
+              onDownloadRepository={downloadRepository}
+              isDownloading={isDownloading}
+            />
+          )}
         </div>
       )}
       
-      {/* File Preview Modal - Desktop Only */}
       {previewFile && (
         <FilePreview
           file={previewFile}
