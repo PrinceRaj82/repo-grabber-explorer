@@ -6,7 +6,7 @@ import { Footer } from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Download, Github, FileCode, FolderIcon, FileIcon, History } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useState, useRef } from "react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -16,16 +16,6 @@ export default function Index() {
   const [hasSearched, setHasSearched] = useState(false);
   const { theme } = useTheme();
   const isMobile = useIsMobile();
-  const inputRef = useRef(null);
-  
-  const focusInput = () => {
-    if (inputRef.current) {
-      // Use setTimeout to ensure input is focused after rendering
-      setTimeout(() => {
-        inputRef.current.focus();
-      }, 100);
-    }
-  };
   
   return (
     <div className="flex flex-col min-h-screen">
@@ -40,7 +30,7 @@ export default function Index() {
           )}
           style={{
             background: theme === 'dark' ? '#0c1222' : undefined,
-            minHeight: hasSearched ? 'auto' : '100vh'
+            minHeight: hasSearched ? 'auto' : '60vh'
           }}
         >
           <div className="container max-w-7xl">
@@ -58,8 +48,8 @@ export default function Index() {
                   hasSearched && "hidden"
                 )}
               >
-                <div className="space-y-4 max-w-5xl mx-auto">
-                  <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none whitespace-normal lg:whitespace-nowrap bg-gradient-to-r from-blue-500 via-blue-300 to-amber-400 bg-clip-text text-transparent">
+                <div className="space-y-4 max-w-3xl mx-auto">
+                  <h1 className="text-3xl font-bold tracking-tighter sm:text-5xl xl:text-6xl/none bg-gradient-to-r from-blue-500 to-amber-400 bg-clip-text text-transparent">
                     Download GitHub Code with Ease
                   </h1>
                   <p className="text-muted-foreground md:text-xl max-w-2xl mx-auto">
@@ -67,7 +57,7 @@ export default function Index() {
                   </p>
                 </div>
                 <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                  <Button size="lg" className="gap-1 bg-primary hover:bg-primary/90 hover-lift" onClick={focusInput}>
+                  <Button size="lg" className="gap-1 bg-primary hover:bg-primary/90 hover-lift">
                     <Download className="h-4 w-4" />
                     Get Started
                   </Button>
@@ -93,7 +83,7 @@ export default function Index() {
                 "transition-all duration-300 max-w-3xl mx-auto w-full",
                 !hasSearched && "mt-8 bg-card/30 p-4 sm:p-6 rounded-xl border border-border/20 shadow-lg"
               )}>
-                <RepoExplorer onSearch={(hasResults) => setHasSearched(!!hasResults)} ref={inputRef} />
+                <RepoExplorer onSearch={(hasResults) => setHasSearched(!!hasResults)} />
               </div>
             </div>
           </div>
